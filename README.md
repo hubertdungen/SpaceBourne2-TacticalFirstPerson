@@ -7,7 +7,7 @@ back to third person as soon as you draw a weapon. Tactical First Person keeps y
 person with a weapon in your hands: you see your own arms, body and gun, you aim by zooming in,
 and every shot goes where you look.
 
-Version 0.1.0 · UE4SS Lua mod · works alone or with the rest of the
+Version 0.1.0 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
 realism set (see below).
 
 ## What it does
@@ -127,7 +127,7 @@ To install them all at once, use the installer:
 | **Ammo Discipline** — realistic ammo limits and scavenging | released: [GitHub](https://github.com/hubertdungen/SpaceBourne2-AmmoDiscipline) · [Nexus Mods](https://www.nexusmods.com/spacebourne2/mods/12) |
 | **Ground Waypoints** — planet markers on foot and on the hoverbike | released: [GitHub](https://github.com/hubertdungen/SpaceBourne2-GroundWaypoints) · [Nexus Mods](https://www.nexusmods.com/spacebourne2/mods/13) |
 | **Get Out of the Way** — NPCs step aside naturally | released: [GitHub](https://github.com/hubertdungen/SpaceBourne2-GetOutOfTheWay) · [Nexus Mods](https://www.nexusmods.com/spacebourne2/mods/14) |
-| **Tactical First Person** — play on foot in first person (this mod) | coming: [GitHub](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson) |
+| **Tactical First Person** — play on foot in first person (this mod) | released: [GitHub](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson) · [Nexus Mods](https://www.nexusmods.com/spacebourne2/mods/15) |
 
 ## License
 
