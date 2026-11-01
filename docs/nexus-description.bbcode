@@ -1,0 +1,104 @@
+[size=6][b]Tactical First Person — play SpaceBourne 2 on foot in first person[/b][/size]
+
+SpaceBourne 2 has a first-person view on foot, but it hides your whole body and throws you back to third person as soon as you draw a weapon. Tactical First Person keeps you in first person with a weapon in your hands: you see your own arms, body and gun, you aim by zooming in, and every shot goes where you look.
+
+Version 0.1.0 · UE4SS Lua mod · works alone or with the rest of the [url=#part-of-the-spacebourne-2-realism-set]realism set[/url].
+
+[line]
+[size=5][b]What it does[/b][/size]
+
+[list]
+[*][b]Same key as the game:[/b] press the game's "switch camera" key (or gamepad button) on foot. Press it again for third person. Your choice is remembered.
+[*][b]First person with weapons:[/b] drawing, switching and firing weapons no longer sends you back to third person.
+[*][b]Your gun in your hands:[/b] a drawn weapon is held up in front of you, so you see it as in a shooter. Sprinting lowers it; it comes back up when you stop.
+[*][b]Your own body:[/b] your head, helmet and hair are hidden so they don't block the view; the rest stays. Look down and you see your legs and feet.
+[*][b]Aiming down the sights:[/b] with an assault or pulse rifle, the right mouse button puts your eye behind the rifle's sights: the shot goes where the front post points. Other weapons zoom in at your eyes and show a small dot in the centre while you aim. Sniper and hunter rifles use the game's own scope.
+[*][b]No crosshair in first person:[/b] aim with the weapon. Hit markers stay.
+[*][b]Shots go where you look:[/b] the game already fires from the camera, so there is nothing to get used to.
+[*][b]Third person when it has to be:[/b] dialogs, melee attacks, falls, the hover pack, space walks and cutscenes use the game's camera as before; first person comes back afterwards.
+[*][b]On by default.[/b] No extra key.
+[/list]
+
+[line]
+[size=5][b]Requirements[/b][/size]
+
+[list]
+[*]SpaceBourne 2 (Steam).
+[*][url=https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/v3.0.1]UE4SS 3.0.1[/url], a free script loader for Unreal Engine games. Installing HTR or the realism set installer installs it too.
+[/list]
+
+[line]
+[size=5][b]Install[/b][/size]
+
+Option A (recommended): the [url=https://www.nexusmods.com/spacebourne2/mods/11]SpaceBourne 2 Realism installer[/url].
+
+Option B, manual:
+
+[list=1]
+[*]Download TacticalFPS-0.1.0.zip from the [url=https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases]releases[/url].
+[*]Extract it into the game folder (...\steamapps\common\SpaceBourne 2\). It adds SB2\Binaries\Win64\Mods\TacticalFPS\; the enabled.txt inside turns it on.
+[*]In game, on foot, press the "switch camera" key.
+[/list]
+
+Uninstall: delete SB2\Binaries\Win64\Mods\TacticalFPS. The mod never writes to your saves.
+
+[line]
+[size=5][b]Settings[/b][/size]
+
+Edit Mods\TacticalFPS\scripts\config.lua, then restart the game. Every line is optional.
+
+[list]
+[*]Enabled: false switches the mod off completely.
+[*]UseGameCameraKey: switch with the game's camera key and button (true).
+[*]ToggleKey: an extra key, none by default. The game's own keys are refused.
+[*]StartInFirstPerson: start new sessions in first person (false; your last choice wins).
+[*]Body: "Full" (your body visible) or "Hidden" (the game's own look, whole body hidden).
+[*]HeadShadow: your hidden head still casts a shadow (true).
+[*]WeaponUp: hold a drawn weapon up in front of you (true). false keeps the game's low hold, where you only see the gun when you look down.
+[*]FOV (90): field of view in first person.
+[*]NearClip (5 cm): how close to your eyes things are still drawn; the game uses 10, which cuts your collar and the gun's stock. 0 leaves the game's value.
+[*]ADS.Mode: "Sights" (rifles aim along their sights) or "Zoom" (every weapon zooms at your eyes). ADS.ZoomFOV: zoom per weapon type. ADS.BlendSeconds (0.15).
+[*]AimDot: small centre dot while zoom-aiming (true).
+[*]Crosshair: "Hidden", "Small" or "Game" in first person.
+[/list]
+
+[line]
+[size=5][b]How it works[/b][/size]
+
+The game kept the first-person camera of its animation system, at your eyes. The mod switches to it when the game's camera key does, hides your head parts instead of your whole body, and puts first person back each time the game falls back to third person for a weapon. Aiming narrows the field of view. Details: DESIGN.md.
+
+[line]
+[size=5][b]Status and known limits[/b][/size]
+
+Known limits:
+
+[list]
+[*][b]Third-person animations:[/b] the game has no first-person arms or animations. The gun is held with its third-person aiming pose, so it sits in the lower part of the view. Only rifles get a true sight view; pistols, shotguns and the rest zoom with a centre dot.
+[*][b]Walls:[/b] standing right against a wall, the barrel goes into it.
+[*][b]Big moves:[/b] rolls, climbing over ledges and hit reactions move the camera with your head.
+[*][b]Ship cockpits[/b] are unchanged: the game has no pilot body to show.
+[/list]
+
+[line]
+[size=5][b]Part of the SpaceBourne 2 realism set[/b][/size]
+
+Part of the realism set, built around [url=https://www.nexusmods.com/spacebourne2/mods/4]Hardcore Tactical Realism[/url] as the core mod. HTR is not required: this mod works on its own or with any of the others. To install them all at once, use the installer: [url=https://github.com/hubertdungen/SpaceBourne2-Realism]SpaceBourne 2 Realism[/url] ([url=https://www.nexusmods.com/spacebourne2/mods/11]Nexus[/url]).
+
+[list]
+[*][b]Hardcore Tactical Realism (HTR) — realistic ballistics and tactical AI[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-HardcoreTacticalRealism]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/4]Nexus Mods[/url] · [url=https://steamcommunity.com/app/1646850/discussions/0/573805072991123580]Steam discussion[/url]
+[*][b]Split Controls — separate invert for ship and on foot[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-SplitControls]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/5]Nexus Mods[/url]
+[*][b]Silent Ops — realistic stealth[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-SilentOps]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/6]Nexus Mods[/url]
+[*][b]Gear Without Levels — use gear regardless of level[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-GearWithoutLevels]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/7]Nexus Mods[/url]
+[*][b]SB2 HOTAS — HOTAS, triple screens, head tracking[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-HOTAS]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/8]Nexus Mods[/url]
+[*][b]Faction Power — your deeds earn your faction power[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-FactionPower]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/9]Nexus Mods[/url]
+[*][b]Tactical Engineering — realistic deployable turrets[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-TacticalEngineering]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/10]Nexus Mods[/url]
+[*][b]Ammo Discipline — realistic ammo limits and scavenging[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-AmmoDiscipline]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/12]Nexus Mods[/url]
+[*][b]Ground Waypoints — planet markers on foot and on the hoverbike[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-GroundWaypoints]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/13]Nexus Mods[/url]
+[*][b]Get Out of the Way — NPCs step aside naturally[/b]: released: [url=https://github.com/hubertdungen/SpaceBourne2-GetOutOfTheWay]GitHub[/url] · [url=https://www.nexusmods.com/spacebourne2/mods/14]Nexus Mods[/url]
+[*][b]Tactical First Person — play on foot in first person (this mod)[/b]: coming: [url=https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson]GitHub[/url]
+[/list]
+
+[line]
+[size=5][b]License[/b][/size]
+
+MIT. See LICENSE.
