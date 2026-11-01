@@ -1,4 +1,4 @@
-![Tactical First Person](docs/banner.png)
+![Tactical First Person](https://raw.githubusercontent.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/main/docs/banner.png)
 
 # Tactical First Person — play SpaceBourne 2 on foot in first person
 
@@ -8,7 +8,7 @@ person with a weapon in your hands: you see your own arms, body and gun, you aim
 and every shot goes where you look.
 
 Version 0.1.0 · UE4SS Lua mod · works alone or with the rest of the
-[realism set](#part-of-the-spacebourne-2-realism-set).
+realism set (see below).
 
 ## What it does
 
@@ -76,12 +76,12 @@ Edit `Mods\TacticalFPS\scripts\config.lua`, then restart the game. Every line is
 The game kept the first-person camera of its animation system, at your eyes. The mod switches
 to it when the game's camera key does, hides your head parts instead of your whole body, and
 puts first person back each time the game falls back to third person for a weapon. Aiming
-narrows the field of view. Details: [DESIGN.md](DESIGN.md).
+narrows the field of view. Details: [DESIGN.md](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/blob/main/DESIGN.md).
 
 ## Status and known limits
 
 <!-- nexus:skip -->
-Tested in game on 2026-11-01 (two short runs, details in [DESIGN.md](DESIGN.md), section 0.6), with
+Tested in game on 2026-11-01 (two short runs, details in [DESIGN.md](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/blob/main/DESIGN.md), section 0.6), with
 HTR, Split Controls, Silent Ops, Gear Without Levels, Faction Power, Tactical Engineering, Ammo
 Discipline, Get Out of the Way and Ground Waypoints installed:
 - the camera key switches first person on and off with a rifle in hand, with the HUD line;
@@ -131,4 +131,4 @@ To install them all at once, use the installer:
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/blob/main/LICENSE).
