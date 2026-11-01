@@ -92,8 +92,10 @@ Discipline, Get Out of the Way and Ground Waypoints installed:
 - no head, helmet or hair in view; looking down shows hands, gun and feet with no cut edges;
 - frame times in first vs third person: the same (9.3–9.9 ms average, no frame over 26 ms);
 - your saves untouched.
-Not yet tried in game: the gamepad button, sniper scopes, dialogs, melee, the hover pack and
-space walks (they follow the game's own camera code paths). The game froze twice during these
+- the gamepad camera button switches like the key; the hover pack switches to third person and
+  first person comes back when you land.
+Not yet tried in game: sniper scopes, dialogs, melee and space walks (they follow the game's own
+camera code paths). The game froze twice during these
 tests, both times while the PC was idle or remote-locked; that is a known issue with the game
 running behind a locked screen, not with this mod.
 <!-- /nexus:skip -->

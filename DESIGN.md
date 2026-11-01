@@ -149,6 +149,12 @@ Runs 5–7 (03:02–03:35, aiming down the sights; run 5 froze with the PC idle 
 - Freezes: runs 3 and 5a stopped about 17 s after load with no crash. Both times the user's
   TeamViewer session had ended and the PC was idle. Every run with a live session passed.
 
+Run 8 (03:53, release build):
+- Gamepad camera button (`GP_SwitchCamera1` `_23`/`_22`): first person off, then on. OK.
+- Hover (`StartHover`): third person while flying, first person back after `StopHover`. OK.
+- Melee (`C_Melee_36`): nothing happened, because the save has no melee weapon. Untested.
+- Sniper class swap: failed (the hover had holstered the weapon). Untested.
+
 ## 1. Verdict
 
 A tactical first-person mode on foot is **feasible from UE4SS Lua, without editing Blueprints or paks**.
