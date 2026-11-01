@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.1.0
+## 0.1.1 (2026-11-01)
+
+Thanks to **TheCalcMan** (Steam) for the report.
+
+- **No more camera drop after reloading.** Two seconds after each reload the game moved the view to
+  the gun's own camera (a leftover of its sniper scope), so the view sat at your hip until you
+  pressed "switch camera" twice. The view now stays at your eyes, and first person stays on.
+- A bigger lean in first person (also asked by TheCalcMan) is being worked on for the next update.
+
+## 0.1.0 (2026-11-01)
 
 - First person on foot with the game's own camera key or gamepad button; it stays on when you
   draw, switch or fire a weapon.

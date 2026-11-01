@@ -38,6 +38,8 @@ local V = {
     lastBlock = nil,
     nearOn = false,       -- our near clip plane is set
     poseOurs = false,     -- we put the player in ALS's aiming pose (weapon up)
+    reloadAt = nil,       -- os.clock() of the last reload (watch the view for a few seconds)
+    guardNext = 0,
 }
 
 local function cfg() return TFPS.cfg end
@@ -65,6 +67,22 @@ local function syncNearClip(p)
     if U.console("r.SetNearClipPlane " .. (want and cfg().NearClip or 10), p) then V.nearOn = want end
 end
 
+-- The game's weapon keeps an old sniper-scope rule: 2 s after every reload, if the player's
+-- ViewMode is first person, it puts the view on the weapon's own sight camera. In the game that
+-- only happens behind a scope. In our first person it threw the view onto the gun held low ("the
+-- camera jerks downward after reloading", TheCalcMan), and 0.1.0 then took it for a cutscene and
+-- left first person. Now the view goes straight back to the player's eyes.
+local function isOwnWeapon(p, vt)
+    local comp = U.get(p, P.Weapon, nil)
+    local w = U.valid(comp) and U.get(comp, "ChildActor", nil) or nil
+    return U.valid(w) and U.addr(w) == U.addr(vt)
+end
+
+local function viewBackOnPlayer(p, pc)
+    local ok = pcall(function() pc:SetViewTargetWithBlend(p, 0, 0, 0, false) end)
+    U.log("the game put the view on the weapon (reload): back on the player " .. tostring(ok))
+end
+
 -- Why first person cannot be on right now (nil = it can). Cheap property reads only.
 function V.blockReason(p)
     if U.get(p, P.Loading, false) then return "loading" end
@@ -79,7 +97,10 @@ function V.blockReason(p)
     if not V.viewOnWeapon then
         local pc = U.playerController(p)
         local ok, vt = pcall(function() return pc:GetViewTarget() end)
-        if ok and U.valid(vt) and U.addr(vt) ~= U.addr(p) then return "other camera" end
+        if ok and U.valid(vt) and U.addr(vt) ~= U.addr(p) then
+            if isOwnWeapon(p, vt) then return "weapon camera" end
+            return "other camera"
+        end
     end
     return nil
 end
@@ -196,8 +217,31 @@ end
 -- NPCs), so the common path is one clock compare. When due, the ticking actor is only used
 -- as a world context to ask the engine for the possessed pawn (instant), so no class checks
 -- run per NPC and nothing allocates per NPC per frame.
+-- Post-hook Master_Hand_Weapon:RL / :Reloaded.
+function V.onReload()
+    V.reloadAt, V.guardNext = os.clock(), 0
+end
+
+-- For a few seconds after a reload, check the view every frame: the game's switch to the weapon
+-- blends over 0.25 s, so waiting for the 0.1 s poll would still show a dip toward the gun.
+local function guardReload(self, now)
+    V.guardNext = now + 0.004
+    local since = now - V.reloadAt
+    if since > 5 then V.reloadAt = nil; return end   -- 2 s in game time; slow motion stretches it
+    if since < 1.5 or not V.isFP or V.viewOnWeapon then return end
+    local p = U.playerPawn(self:get())
+    if not p or U.addr(p) ~= V.playerAddr then return end
+    local pc = U.playerController(p)
+    local ok, vt = pcall(function() return pc:GetViewTarget() end)
+    if ok and U.valid(vt) and U.addr(vt) ~= U.addr(p) and isOwnWeapon(p, vt) then
+        viewBackOnPlayer(p, pc)
+        V.reloadAt = nil
+    end
+end
+
 function V.onTick(self, A)
     local now = os.clock()
+    if V.reloadAt and now >= V.guardNext then guardReload(self, now) end
     if now < ((V.dirty or A.busy or A.hold) and V.nextFast or V.nextPoll) then return end
     V.nextFast = now + 0.008             -- while something is pending: about once per frame
     V.nextPoll = now + cfg().PollSeconds
@@ -232,6 +276,10 @@ step = function(p, now, A)
     end
     if now < V.blockedUntil then V.dirty = false; return end
     local why = V.blockReason(p)
+    if why == "weapon camera" then
+        viewBackOnPlayer(p, U.playerController(p))
+        why = nil
+    end
     if why ~= V.lastBlock then V.lastBlock = why; U.log("first person blocked by: " .. tostring(why)) end
     if why then
         -- Another camera shows the scene (cutscene...): give the player their head back.

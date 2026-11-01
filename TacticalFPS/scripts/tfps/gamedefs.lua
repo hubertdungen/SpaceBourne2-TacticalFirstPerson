@@ -30,6 +30,10 @@ G.Fn = {
     RMB          = G.Player .. ":RMB",
     -- weapon equip; MHW init runs 0.1 s later and re-adds the crosshair (AddCrosshair(5, ...))
     WeaponEquip  = G.HandWeapon .. ":Play_Equip_Sound",
+    -- the weapon's reload: RL is bound to the game's global "Reload" event, Reloaded is the other
+    -- way in. Both run the same code, which 2 s later moves the view to the weapon's sight camera
+    -- whenever the player's ViewMode is first person (the game's old sniper-scope rule).
+    Reloads      = { G.HandWeapon .. ":RL", G.HandWeapon .. ":Reloaded" },
     -- the game's own "switch camera" input, keyboard (_51/_52) and gamepad (_22/_23). The
     -- game toggles the view 0.2 s after the press; HTR also hooks _22 (4-tap mode gesture).
     CameraInputs = {
