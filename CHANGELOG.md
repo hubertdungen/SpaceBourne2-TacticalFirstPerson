@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2 (2026-11-05)
+
+- **No crash when you die in first person.** When the player dies, the mod now stops touching
+  the camera, the view and the weapon for 15 seconds, while the game plays the death and cleans
+  up. While your body is ragdolled (falls, knockouts), the mod only reads the game's state and
+  changes nothing. Tested in game: two deaths in first person (one aiming down the rifle sights,
+  one with the rifle up), each followed by loading the save; no crash, and first person came back
+  after each load.
+
 ## 0.1.1 (2026-11-01)
 
 Thanks to **TheCalcMan** (Steam) for the report.
