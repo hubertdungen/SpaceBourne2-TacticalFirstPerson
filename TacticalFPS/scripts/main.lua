@@ -9,7 +9,7 @@
     tfps/util.lua      helpers (from HTR)
 ]]
 
-local VERSION = "0.1.2"
+local VERSION = "0.1.3"
 
 local U = require("tfps.util")
 

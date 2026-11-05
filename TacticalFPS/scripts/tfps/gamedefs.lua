@@ -72,14 +72,24 @@ G.P = {
     UsingScope = "UsingScope", Lean = "LeanDirection",
     -- Master_Hand_Weapon
     WeaponCamera = "Camera",                               -- the weapon's own sight camera
+    -- Q1Hud (pc:GetHUD()): the HUD's own crosshair widget, a Test_Crosshair_C switcher holding
+    -- the small blue Laser_Crosshair and Shotgun_Crosshair (colour 0, 0.48, 0.71)
+    HudReticle = "CHWidget",
 }
 
 -- Weapons whose own sight camera (AimTransform) gives a true sight picture, checked in game on
 -- 2026-11-01, with a height fix in cm: the game's camera sits 3 cm above the rifle's sight line
 -- (bullets landed 3 degrees above the front post). Other weapons aim by zooming at the eyes.
+-- Every weapon class shares the same AimTransform, so weapons with a different sight need their
+-- own fix. Shotguns (the laser one is the "Pulse Charger") have a red holo sight 10.2 cm below
+-- the rifle's sight line, calibrated in game on 2026-11-05 (the holo's aim mark on the screen
+-- centre). Their sight camera is also turned 5 degrees right in the blueprint: aim.lua
+-- straightens it while aiming.
 G.SightCamera = {
     Bullet_Rifle_C = { Z = -3.0 },
     Pulse_Rifle_C  = { Z = -3.0 },
+    Shotgun_Rifle_C = { Z = -10.2 },
+    Shotgun_Laser_C = { Z = -10.2 },
 }
 
 -- Weapon class -> aim group (ADS zoom per group, see config.lua)

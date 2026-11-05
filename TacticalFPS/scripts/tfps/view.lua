@@ -62,10 +62,22 @@ end
 
 -- Near clip plane: the game draws nothing closer than 10 cm to the camera, which cuts the
 -- collar and the weapon's stock in first person. Lowered only while first person is on.
+-- Returns true when it changed the plane (a console command: the engine waits for the renderer).
 local function syncNearClip(p)
     local want = V.isFP and cfg().NearClip > 0
-    if want == V.nearOn then return end
+    if want == V.nearOn then return false end
     if U.console("r.SetNearClipPlane " .. (want and cfg().NearClip or 10), p) then V.nearOn = want end
+    return true
+end
+
+-- Debug: name the step when one part of a player update is slow (UE4SS.log "slow hook").
+local function timed(name, fn, ...)
+    if not U.Verbose then return fn(...) end
+    local t0 = os.clock()
+    local r = fn(...)
+    local ms = (os.clock() - t0) * 1000
+    if ms > 3 then U.log(string.format("slow part %s: %.1f ms", name, ms)) end
+    return r
 end
 
 -- The game's weapon keeps an old sniper-scope rule: 2 s after every reload, if the player's
@@ -268,6 +280,7 @@ function V.onTick(self, A)
         if a == V.otherAddr then return end
         if not G.PlayerClassNames[U.className(p) or ""] then  -- a ship, a vehicle...
             V.otherAddr, V.dirty = a, false
+            A.restoreHud(p) -- the HUD's crosshair is shared with the ship
             return
         end
         V.playerAddr, V.otherAddr, V.dirty = a, nil, true     -- new player pawn (load, respawn, back on foot)
@@ -286,10 +299,12 @@ function V.update(p, now, A)
         return
     end
     if V.message then U.notify(V.message, p); V.message = nil end
-    A.update(p, now, V)
-    step(p, now, A)
-    syncNearClip(p)
-    weaponPose(p)
+    timed("aim", A.update, p, now, V)
+    -- Entering first person, the near clip plane and the weapon pose each cost several ms (the
+    -- game's view switch, a render flush, an animation change): one per frame, never all at once.
+    if timed("view", step, p, now, A) then V.dirty = true; return end
+    if timed("near clip", syncNearClip, p) then V.dirty = true; return end
+    timed("pose", weaponPose, p)
 end
 
 step = function(p, now, A)
@@ -315,9 +330,10 @@ step = function(p, now, A)
     if not V.isFP or U.get(p, P.ViewMode, 0) ~= G.ViewMode.First then
         V.enter(p)
         A.onViewChanged(p, true, V)
-    else
-        hideHead(p)
+        V.dirty = false
+        return true
     end
+    hideHead(p)
     V.dirty = false
 end
 

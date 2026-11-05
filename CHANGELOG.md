@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.3 (2026-11-05)
+
+- **No reticle while you aim.** In first person, aiming (right mouse button or the gamepad aim)
+  hides every reticle: the game's crosshair, Clear HUD's reticle (it lives inside the game's
+  crosshair) and the HUD's small blue reticle of laser and shotgun weapons. They come back when
+  you stop aiming. Pistols and other zoom-aimed weapons keep only the small centre dot.
+- **Shotguns aim through their red holo sight**, the laser one ("Pulse Charger") included. The
+  game's sight camera for shotguns is turned 5 degrees to the right of the barrel, which put the
+  holo off-centre and showed the gun from the side. While you aim, the mod now points it straight
+  down the barrel and puts your eye behind the holo (calibrated in game).
+- **Smoother switch to first person.** The work done when first person turns on (view, near
+  clip, weapon pose) is spread over a few frames. In testing, the longest mod update dropped from
+  up to 20 ms to 8 to 11 ms, once per switch to first person, with only a few such spikes in
+  eight minutes of play.
+
 ## 0.1.2 (2026-11-05)
 
 - **No crash when you die in first person.** When the player dies, the mod now stops touching
