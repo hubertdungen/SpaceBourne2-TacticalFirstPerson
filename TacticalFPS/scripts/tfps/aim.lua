@@ -127,9 +127,14 @@ function A.onViewChanged(p, fp, V)
     applyCrosshair(p, fp)
 end
 
+-- Called by view.lua when the player dies: drop every aiming state, no engine calls.
+function A.reset()
+    A.aiming, A.busy, A.hold, A.sightLoc, A.dotOn, A.crosshairAt = false, false, false, nil, false, nil
+end
+
 -- Post-hook Q1_Character:RMB(Relesed?): aim pressed (false) or released (true).
 function A.onRMB(self, released, V)
-    if not V.isFP then return end
+    if not V.isFP or os.clock() < V.deadUntil then return end
     local p = self:get()
     local w = weaponOf(p)
     if not w then return end
@@ -159,7 +164,6 @@ end
 -- Post-hook Master_Hand_Weapon:Play_Equip_Sound. The weapon's init runs >= 0.1 s later and
 -- re-adds the crosshair, so apply our crosshair setting a little after that.
 function A.onEquip()
-    U.log("weapon equip")
     A.crosshairAt = os.clock() + 0.4
 end
 

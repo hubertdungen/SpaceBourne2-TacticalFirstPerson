@@ -28,6 +28,8 @@ G.Fn = {
     SetViewMode  = G.Player .. ":BPI_Set_ViewMode",
     -- aim pressed (Relesed? = false) / released (true); Q1_Character overrides ALS_Base's event
     RMB          = G.Player .. ":RMB",
+    -- any ALS character dies (player and NPCs): the mod pauses on the player's death
+    Death        = G.ALSBase .. ":OnDead",
     -- weapon equip; MHW init runs 0.1 s later and re-adds the crosshair (AddCrosshair(5, ...))
     WeaponEquip  = G.HandWeapon .. ":Play_Equip_Sound",
     -- the weapon's reload: RL is bound to the game's global "Reload" event, Reloaded is the other

@@ -38,6 +38,7 @@ local V = {
     lastBlock = nil,
     nearOn = false,       -- our near clip plane is set
     poseOurs = false,     -- we put the player in ALS's aiming pose (weapon up)
+    deadUntil = 0,        -- os.clock(): no engine calls until then (the player died)
     reloadAt = nil,       -- os.clock() of the last reload (watch the view for a few seconds)
     guardNext = 0,
 }
@@ -170,7 +171,7 @@ end
 
 -- Post-hook Q1_Character:BPI_Set_ViewMode(NewViewMode). The game changed the view by itself.
 function V.onSetViewMode(self, newMode)
-    if V.ours then return end
+    if V.ours or os.clock() < V.deadUntil then return end
     local p = self:get()
     if U.addr(p) ~= V.playerAddr then return end
     local m = newMode:get()
@@ -217,6 +218,20 @@ end
 -- NPCs), so the common path is one clock compare. When due, the ticking actor is only used
 -- as a world context to ask the engine for the possessed pawn (instant), so no class checks
 -- run per NPC and nothing allocates per NPC per frame.
+-- Post-hook ALS_Base:OnDead. When the player dies the game ragdolls, destroys the weapon and may
+-- reload the map: objects die mid-frame. The mod then makes no engine call at all for 15 s and
+-- forgets its state; it starts again from the new pawn (0.1.2: a crash when killed in first
+-- person, an access violation inside a Lua callback).
+function V.onDeath(self)
+    local ok, a = pcall(function() return self:get():GetAddress() end)
+    if not ok or a ~= V.playerAddr then return end
+    V.deadUntil = os.clock() + 15
+    V.playerAddr, V.otherAddr, V.isFP, V.viewOnWeapon, V.poseOurs = nil, nil, false, false, false
+    V.reloadAt, V.keyAt, V.dirty = nil, nil, true
+    if V.onDeathHook then V.onDeathHook() end
+    U.log("player died: paused for 15 s")
+end
+
 -- Post-hook Master_Hand_Weapon:RL / :Reloaded.
 function V.onReload()
     V.reloadAt, V.guardNext = os.clock(), 0
@@ -241,6 +256,7 @@ end
 
 function V.onTick(self, A)
     local now = os.clock()
+    if now < V.deadUntil then return end
     if V.reloadAt and now >= V.guardNext then guardReload(self, now) end
     if now < ((V.dirty or A.busy or A.hold) and V.nextFast or V.nextPoll) then return end
     V.nextFast = now + 0.008             -- while something is pending: about once per frame
@@ -261,6 +277,14 @@ end
 
 local step
 function V.update(p, now, A)
+    -- Ragdoll (falls, HTR knockouts, the start of a death): the game owns the body and destroys or
+    -- holsters the weapon. Touch nothing but plain property reads until it gets up.
+    if U.get(p, P.MovementState, 0) == G.MovementState.Ragdoll then
+        if A.hold or A.aiming then A.reset() end
+        V.viewOnWeapon = false
+        if V.isFP then V.isFP, V.dirty = false, true end
+        return
+    end
     if V.message then U.notify(V.message, p); V.message = nil end
     A.update(p, now, V)
     step(p, now, A)

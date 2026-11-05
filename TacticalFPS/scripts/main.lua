@@ -9,7 +9,7 @@
     tfps/util.lua      helpers (from HTR)
 ]]
 
-local VERSION = "0.1.1"
+local VERSION = "0.1.2"
 
 local U = require("tfps.util")
 
@@ -75,6 +75,8 @@ U.warn(string.format("=== Tactical First Person %s loaded, first person %s ===",
 H.add(G.Fn.Tick, function(self) V.onTick(self, A) end, "player tick")
 H.add(G.Fn.SetViewMode, V.onSetViewMode, "view change")
 H.add(G.Fn.RMB, function(self, released) A.onRMB(self, released, V) end, "aim")
+H.add(G.Fn.Death, V.onDeath, "death")
+V.onDeathHook = A.reset
 H.add(G.Fn.WeaponEquip, A.onEquip, "weapon equip")
 for i, path in ipairs(G.Fn.Reloads) do H.add(path, V.onReload, "reload " .. i) end
 if cfg.UseGameCameraKey then
