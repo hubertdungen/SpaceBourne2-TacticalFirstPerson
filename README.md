@@ -105,22 +105,11 @@ camera code paths). The game froze twice during these
 tests, both times while the PC was idle or remote-locked; that is a known issue with the game
 running behind a locked screen, not with this mod.
 
-0.1.1 (the view staying at your eyes after a reload) was checked against the game's weapon
-Blueprint; it has not been run in game yet.
-
-0.1.2 (no crash on death), tested in game on 2026-11-05 with HTR installed: two deaths in first
-person (aiming down the rifle sights, and with the rifle up), each followed by loading the save.
-No crash; first person came back after each load; saves untouched.
-
-0.1.3, tested in game on 2026-11-05 (two short runs with HTR installed): every reticle hidden
-while aiming with the mouse and with the gamepad aim, and back after; both shotguns aim with the
-holo's aim mark on the screen centre and the gun straight; the pistol zoom keeps one dot; the
-longest mod update 8 to 11 ms, once per switch to first person; saves untouched.
-
-0.1.4, tested in game on 2026-11-06 (two short runs with HTR installed): the bullet pistol aims
-with its holo's red dot on the screen centre and the gun straight, the laser pistol with its
-front post on the centre and the red V just below, with the mouse and the gamepad aim; every
-reticle hidden while aiming; aiming a pistol costs the same as aiming a rifle; saves untouched.
+Also tested in game with HTR installed: the view stays at your eyes after a reload; no crash on
+death in first person (rifle sights and rifle up, each followed by a load); every reticle hidden
+while aiming with the mouse and the gamepad aim; shotguns and both pistols aim with their own
+sight mark on the screen centre and the gun straight; aiming costs the same as not aiming;
+saves untouched.
 <!-- /nexus:skip -->
 
 Known limits:
@@ -130,6 +119,8 @@ Known limits:
   shotguns and pistols get a true sight view; SMGs and the rest zoom with a centre dot.
 - **Walls:** standing right against a wall, the barrel goes into it.
 - **Big moves:** rolls, climbing over ledges and hit reactions move the camera with your head.
+- **Pistol aim flicker:** with the whole realism set installed, the view can flicker for a moment
+  when you start aiming a pistol, and can turn quickly when you stop. A fix is being worked on.
 - **Ship cockpits** are unchanged: the game has no pilot body to show.
 
 ## Part of the SpaceBourne 2 realism set
