@@ -29,8 +29,9 @@ return {
 
     -- Aiming in first person.
     ADS = {
-        -- "Sights": rifles are aimed along their own sights (shots go where the front post points);
-        --           other weapons zoom at your eyes. "Zoom": every weapon zooms at your eyes.
+        -- "Sights": rifles, shotguns and pistols are aimed along their own sights (shots go where
+        --           the sight points); other weapons zoom at your eyes. "Zoom": every weapon zooms
+        --           at your eyes.
         Mode = "Sights",
         ZoomFOV = { Pistol = 75, SMG = 70, Rifle = 65, Shotgun = 75 }, -- sniper rifles use the game's scope
         BlendSeconds = 0.15,

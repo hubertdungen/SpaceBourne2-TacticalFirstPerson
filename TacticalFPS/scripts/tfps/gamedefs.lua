@@ -85,11 +85,20 @@ G.P = {
 -- the rifle's sight line, calibrated in game on 2026-11-05 (the holo's aim mark on the screen
 -- centre). Their sight camera is also turned 5 degrees right in the blueprint: aim.lua
 -- straightens it while aiming.
+-- Pistols keep the base weapon's sight camera, made for a gun pointing along Y: it is turned 90
+-- degrees and sits 22 cm to the side of the pistol, which points along X like the rifles. Their
+-- camera gets a fixed position instead (Pos, weapon space), read from the meshes: the shotgun's
+-- holo glass in its mesh is centred 0.1 cm from the calibrated camera, so the method holds. Bullet
+-- pistol: centre of its holo glass (Y 0, Z 13.6). Laser pistol: its front post tip is at Z 11.1,
+-- the camera 0.4 cm below it as on the rifle. Both 22.4 cm behind the grip, the game's own
+-- distance.
 G.SightCamera = {
     Bullet_Rifle_C = { Z = -3.0 },
     Pulse_Rifle_C  = { Z = -3.0 },
     Shotgun_Rifle_C = { Z = -10.2 },
     Shotgun_Laser_C = { Z = -10.2 },
+    Bullet_Pistol_C = { Pos = { X = -22.4, Y = 0.0, Z = 13.6 } },
+    Laser_Pistol_C  = { Pos = { X = -22.4, Y = 0.0, Z = 10.7 } },
 }
 
 -- Weapon class -> aim group (ADS zoom per group, see config.lua)

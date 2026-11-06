@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 (2026-11-06)
+
+- **Pistols aim through their own sights.** The bullet pistol puts its holo's red dot on the
+  screen centre; the laser pistol lines up its front post over the red V. The game's sight
+  camera for pistols is turned 90 degrees and sits beside the gun, so until now pistols only
+  zoomed. While you aim, the mod puts your eye behind the sight, measured on the guns' 3D
+  models, and points it down the barrel. Shots go where the sight points.
+
 ## 0.1.3 (2026-11-05)
 
 - **No reticle while you aim.** In first person, aiming (right mouse button or the gamepad aim)

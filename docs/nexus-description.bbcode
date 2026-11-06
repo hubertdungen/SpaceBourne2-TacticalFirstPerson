@@ -4,7 +4,7 @@
 
 SpaceBourne 2 has a first-person view on foot, but it hides your whole body and throws you back to third person as soon as you draw a weapon. Tactical First Person keeps you in first person with a weapon in your hands: you see your own arms, body and gun, you aim by zooming in, and every shot goes where you look.
 
-Version 0.1.3 · [url=https://www.nexusmods.com/spacebourne2/mods/15]Nexus Mods page[/url] · UE4SS Lua mod · works alone or with the rest of the realism set (see below).
+Version 0.1.4 · [url=https://www.nexusmods.com/spacebourne2/mods/15]Nexus Mods page[/url] · UE4SS Lua mod · works alone or with the rest of the realism set (see below).
 
 [line]
 [size=5][b]What it does[/b][/size]
@@ -14,7 +14,7 @@ Version 0.1.3 · [url=https://www.nexusmods.com/spacebourne2/mods/15]Nexus Mods 
 [*][b]First person with weapons:[/b] drawing, switching and firing weapons no longer sends you back to third person.
 [*][b]Your gun in your hands:[/b] a drawn weapon is held up in front of you, so you see it as in a shooter. Sprinting lowers it; it comes back up when you stop.
 [*][b]Your own body:[/b] your head, helmet and hair are hidden so they don't block the view; the rest stays. Look down and you see your legs and feet.
-[*][b]Aiming down the sights:[/b] with an assault rifle, a pulse rifle or a shotgun (the "Pulse Charger" included), the right mouse button or the gamepad aim puts your eye behind the weapon's own sight: the rifles' front post, the shotguns' red holo. Other weapons zoom in at your eyes and show a small dot in the centre while you aim. Sniper and hunter rifles use the game's own scope.
+[*][b]Aiming down the sights:[/b] with an assault rifle, a pulse rifle, a shotgun (the "Pulse Charger" included) or a pistol, the right mouse button or the gamepad aim puts your eye behind the weapon's own sight: the rifles' front post, the shotguns' red holo, the bullet pistol's holo and the laser pistol's red V sight. Other weapons zoom in at your eyes and show a small dot in the centre while you aim. Sniper and hunter rifles use the game's own scope.
 [*][b]No crosshair in first person:[/b] aim with the weapon. While you aim, every reticle is hidden, Clear HUD's and the HUD's small blue one included. Hit markers stay.
 [*][b]Shots go where you look:[/b] the game already fires from the camera, so there is nothing to get used to.
 [*][b]Third person when it has to be:[/b] dialogs, melee attacks, falls, the hover pack, space walks and cutscenes use the game's camera as before; first person comes back afterwards.
@@ -37,7 +37,7 @@ Option A (recommended): the [url=https://www.nexusmods.com/spacebourne2/mods/11]
 Option B, manual:
 
 [list=1]
-[*]Download TacticalFPS-0.1.3.zip from the [url=https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases]releases[/url].
+[*]Download TacticalFPS-0.1.4.zip from the [url=https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases]releases[/url].
 [*]Extract it into the game folder (...\steamapps\common\SpaceBourne 2\). It adds SB2\Binaries\Win64\Mods\TacticalFPS\; the enabled.txt inside turns it on.
 [*]In game, on foot, press the "switch camera" key.
 [/list]
@@ -59,7 +59,7 @@ Edit Mods\TacticalFPS\scripts\config.lua, then restart the game. Every line is o
 [*]WeaponUp: hold a drawn weapon up in front of you (true). false keeps the game's low hold, where you only see the gun when you look down.
 [*]FOV (90): field of view in first person.
 [*]NearClip (5 cm): how close to your eyes things are still drawn; the game uses 10, which cuts your collar and the gun's stock. 0 leaves the game's value.
-[*]ADS.Mode: "Sights" (rifles and shotguns aim along their sights) or "Zoom" (every weapon zooms at your eyes). ADS.ZoomFOV: zoom per weapon type. ADS.BlendSeconds (0.15).
+[*]ADS.Mode: "Sights" (rifles, shotguns and pistols aim along their sights) or "Zoom" (every weapon zooms at your eyes). ADS.ZoomFOV: zoom per weapon type. ADS.BlendSeconds (0.15).
 [*]AimDot: small centre dot while zoom-aiming (true).
 [*]Crosshair: "Hidden", "Small" or "Game" in first person.
 [/list]
@@ -75,7 +75,7 @@ The game kept the first-person camera of its animation system, at your eyes. The
 Known limits:
 
 [list]
-[*][b]Third-person animations:[/b] the game has no first-person arms or animations. The gun is held with its third-person aiming pose, so it sits in the lower part of the view. Only rifles and shotguns get a true sight view; pistols, SMGs and the rest zoom with a centre dot.
+[*][b]Third-person animations:[/b] the game has no first-person arms or animations. The gun is held with its third-person aiming pose, so it sits in the lower part of the view. Only rifles, shotguns and pistols get a true sight view; SMGs and the rest zoom with a centre dot.
 [*][b]Walls:[/b] standing right against a wall, the barrel goes into it.
 [*][b]Big moves:[/b] rolls, climbing over ledges and hit reactions move the camera with your head.
 [*][b]Ship cockpits[/b] are unchanged: the game has no pilot body to show.

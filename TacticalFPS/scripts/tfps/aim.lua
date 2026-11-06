@@ -1,9 +1,9 @@
 --[[
   Aiming in first person (see DESIGN.md).
 
-   * ADS "Sights": rifles and shotguns put the view on the weapon's own sight camera, moved
-     behind the real sight (G.SightCamera). Shots start at the active camera, so they go where
-     the sight points.
+   * ADS "Sights": rifles, shotguns and pistols put the view on the weapon's own sight camera,
+     moved behind the real sight (G.SightCamera). Shots start at the active camera, so they go
+     where the sight points.
    * ADS "Zoom": aim lowers FirstPersonFOV (smooth blend, per weapon group), with a small dot.
    * Scoped weapons (Sniper, Hunter): in first person the game zooms the weapon's camera while
      the view stays on the head, so the zoom would be lost. We move the view to the weapon,
@@ -57,17 +57,21 @@ local function viewWeapon(p, w, V, on)
     end
 end
 
--- Sight fix for a weapon class. With Debug on, Mods\TacticalFPS\sight_tune.txt ("Class X Y Z"
--- per line) overrides it, read on every aim press: used to calibrate new weapons in game.
+-- Sight fix for a weapon class. With Debug on, Mods\TacticalFPS\sight_tune.txt overrides it, read
+-- on every aim press: used to calibrate new weapons in game. One line per class:
+-- "Class X Y Z" (offset from the game's camera) or "Class pos X Y Z" (fixed position).
 local function sightFix(cls)
     if U.Verbose then
         local f = io.open(U.Dir .. "sight_tune.txt", "r")
         if f then
             for line in f:lines() do
-                local c, x, y, z = line:match("^(%S+)%s+(%S+)%s+(%S+)%s+(%S+)")
+                local c, x, y, z = line:match("^(%S+)%s+pos%s+(%S+)%s+(%S+)%s+(%S+)")
+                local abs = c ~= nil
+                if not abs then c, x, y, z = line:match("^(%S+)%s+(%S+)%s+(%S+)%s+(%S+)") end
                 if c == cls then
                     f:close()
-                    return { X = tonumber(x) or 0, Y = tonumber(y) or 0, Z = tonumber(z) or 0 }
+                    local v = { X = tonumber(x) or 0, Y = tonumber(y) or 0, Z = tonumber(z) or 0 }
+                    return abs and { Pos = v } or v
                 end
             end
             f:close()
@@ -76,10 +80,11 @@ local function sightFix(cls)
     return G.SightCamera[cls]
 end
 
--- Some sight cameras are turned away from the barrel in the blueprint (both shotguns: yaw 5),
--- so the holo sight sat off the screen centre and the gun looked skewed. While aiming, the
+-- Some sight cameras are turned away from the barrel in the blueprint (both shotguns: yaw 5,
+-- pistols: yaw 90), so the sight sat off the screen centre or out of view. While aiming, the
 -- camera looks straight down the barrel; its own rotation comes back once the view has left it.
 local ZERO_ROT = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+local NO_TURN = { X = 0.0, Y = 0.0, Z = 0.0, W = 1.0 } -- the same as a quaternion
 
 local function restoreCamera()
     local c = A.camRot
@@ -116,17 +121,23 @@ local function setSightCamera(w)
     local t = U.get(w, "AimTransform")
     if not (fix and U.valid(cam) and t and t.Translation) then return false end
     local key = tostring(U.addr(w) or 0) .. cls
-    local base = A.sightBase[key]
-    if not base then -- the game's own value, before we ever write it
-        local tr = t.Translation
-        base = { X = tr.X, Y = tr.Y, Z = tr.Z }
-        A.sightBase[key] = base
+    local loc
+    if fix.Pos then -- the game's camera is unusable for this class: a fixed position
+        loc = { X = fix.Pos.X, Y = fix.Pos.Y, Z = fix.Pos.Z }
+    else
+        local base = A.sightBase[key]
+        if not base then -- the game's own value, before we ever write it
+            local tr = t.Translation
+            base = { X = tr.X, Y = tr.Y, Z = tr.Z }
+            A.sightBase[key] = base
+        end
+        loc = { X = base.X + (fix.X or 0), Y = base.Y + (fix.Y or 0), Z = base.Z + (fix.Z or 0) }
     end
-    local loc = { X = base.X + (fix.X or 0), Y = base.Y + (fix.Y or 0), Z = base.Z + (fix.Z or 0) }
     local sig = string.format("%.2f %.2f %.2f", loc.X, loc.Y, loc.Z)
     if A.sightWritten[key] ~= sig then
         -- The game's aim timeline lerps the camera from IdleTramsfom to AimTransform: make both the sight.
-        local nt = { Rotation = t.Rotation, Translation = loc, Scale3D = { X = 1, Y = 1, Z = 1 } }
+        local rot = fix.Pos and NO_TURN or t.Rotation
+        local nt = { Rotation = rot, Translation = loc, Scale3D = { X = 1, Y = 1, Z = 1 } }
         U.set(w, "AimTransform", nt)
         U.set(w, "IdleTramsfom", nt)
         A.sightWritten[key] = sig
@@ -275,7 +286,11 @@ function A.update(p, now, V)
         local w = V.viewOnWeapon and weaponOf(p)
         local cam = w and U.get(w, P.WeaponCamera)
         if U.valid(cam) and A.sightLoc then
-            pcall(function() cam:K2_SetRelativeLocation(A.sightLoc, false, {}, false) end)
+            if A.camRot then -- a turned camera: held straight too, in the same engine call
+                pcall(function() cam:K2_SetRelativeLocationAndRotation(A.sightLoc, ZERO_ROT, false, {}, false) end)
+            else
+                pcall(function() cam:K2_SetRelativeLocation(A.sightLoc, false, {}, false) end)
+            end
         else
             A.sightLoc, A.hold = nil, false
         end
