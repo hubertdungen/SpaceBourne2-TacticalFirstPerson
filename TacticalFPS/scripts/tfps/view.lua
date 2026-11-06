@@ -270,7 +270,7 @@ function V.onTick(self, A)
     local now = os.clock()
     if now < V.deadUntil then return end
     if V.reloadAt and now >= V.guardNext then guardReload(self, now) end
-    if now < ((V.dirty or A.busy or A.hold) and V.nextFast or V.nextPoll) then return end
+    if now < ((V.dirty or A.wantsFrames()) and V.nextFast or V.nextPoll) then return end
     V.nextFast = now + 0.008             -- while something is pending: about once per frame
     V.nextPoll = now + cfg().PollSeconds
     local p = U.playerPawn(self:get())
@@ -293,7 +293,7 @@ function V.update(p, now, A)
     -- Ragdoll (falls, HTR knockouts, the start of a death): the game owns the body and destroys or
     -- holsters the weapon. Touch nothing but plain property reads until it gets up.
     if U.get(p, P.MovementState, 0) == G.MovementState.Ragdoll then
-        if A.hold or A.aiming then A.reset() end
+        if A.hold or A.aiming or A.leaving then A.reset() end
         V.viewOnWeapon = false
         if V.isFP then V.isFP, V.dirty = false, true end
         return

@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.6 (2026-11-06)
+
+- **Fixed: the pistol aim flicker and the camera whip on release.** On every aim press and
+  release the game plays a short aim animation that moves the weapon's sight camera to its own
+  place (on pistols turned 90 degrees and 22 cm to the side). The mod's straight sight and that
+  animation took turns from frame to frame, so the view flicked sideways when you started
+  aiming and could swing round when you stopped. The mod now puts its sight back right after
+  the game's animation on every frame, and gives the camera back to the game only once the view
+  is fully back at your eyes. This also steadies the rifle and shotgun sights at the start of
+  aiming.
+- **Quick clicks:** aiming and letting go before the view has reached the sight (or pressing
+  again on the way back) now turns the view around smoothly instead of snapping.
+- **Weapon switch while aiming:** putting a gun away or drawing another one while aiming no
+  longer drags the view along with the gun's swing; an aim pressed while a gun is being drawn
+  starts once it is up.
+
 ## 0.1.5 (2026-11-06)
 
 - **Fixed: a UE4SS crash with many mods** ("Fatal error" in UE4SS.dll, at the main menu or in

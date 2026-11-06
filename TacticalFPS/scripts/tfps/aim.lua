@@ -3,7 +3,8 @@
 
    * ADS "Sights": rifles, shotguns and pistols put the view on the weapon's own sight camera,
      moved behind the real sight (G.SightCamera). Shots start at the active camera, so they go
-     where the sight points.
+     where the sight points. The game's own aim timeline moves that camera on every aim press
+     and release; ours is put back right after it, frame by frame (A.onAimTimeline).
    * ADS "Zoom": aim lowers FirstPersonFOV (smooth blend, per weapon group), with a small dot.
    * Scoped weapons (Sniper, Hunter): in first person the game zooms the weapon's camera while
      the view stays on the head, so the zoom would be lost. We move the view to the weapon,
@@ -19,7 +20,11 @@ local P = G.P
 
 local A = { busy = false, fovFrom = 90, fovTo = 90, t0 = 0, dur = 0.15, aiming = false,
     aimMode = nil,      -- "sight", "scope" or "zoom" while aiming
-    sightBase = {}, sightWritten = {}, sightLoc = nil, hold = false,
+    sightBase = {}, sightLoc = nil, sightFov = nil, hold = false,
+    sightWeapon = nil,  -- address of the weapon whose sight camera we hold
+    leaving = false,    -- released: the view is blending back to the player (A.update ends it)
+    leaveUntil = nil,   -- os.clock() safety limit for that
+    waiting = false,    -- aim pressed during a weapon switch: starts once the gun is up
     savedVis = nil, hudSaved = nil, scale = nil, reticleAt = 0 }
 
 local function cfg() return TFPS.cfg end
@@ -47,13 +52,36 @@ local function stepBlend(p, now)
     if k >= 1 then A.busy = false end
 end
 
--- View on the weapon's sight camera (on = true) or back on the player (on = false).
+-- True while the camera manager blends from one view target to another.
+local function blending(pc)
+    local ok, t = pcall(function() return pc.PlayerCameraManager.PendingViewTarget.Target end)
+    return ok and U.valid(t)
+end
+
+-- View on the weapon's sight camera (on = true) or back on the player (on = false), blended.
+-- V.viewOnWeapon stays true until the view is back on the player (A.update), so view.lua never
+-- mistakes our own blend for the game's (it would cut it short).
+-- Turning around mid-blend (quick clicks): asked for the target it is leaving, the engine drops
+-- the blend and jumps there, and it ignores a target that is already pending. So, all before the
+-- frame is drawn: drop the blend, take the other target at once, then blend to ours from the
+-- picture shown last frame (outgoing view locked): no jump either way.
 local function viewWeapon(p, w, V, on)
     local pc = U.playerController(p)
     if not pc then return end
-    local target = on and w or p
-    if U.valid(target) and pcall(function() pc:SetViewTargetWithBlend(target, cfg().ADS.BlendSeconds, 0, 0, false) end) then
-        V.viewOnWeapon = on
+    local target, other = on and w or p, on and p or w
+    if not U.valid(target) then return end
+    local mid = blending(pc) and U.valid(other)
+    local ok = pcall(function()
+        if mid then
+            pc:SetViewTargetWithBlend(target, 0, 0, 0, false)
+            pc:SetViewTargetWithBlend(other, 0, 0, 0, false)
+        end
+        pc:SetViewTargetWithBlend(target, cfg().ADS.BlendSeconds, 0, 0, mid)
+    end)
+    if ok then
+        V.viewOnWeapon = true
+        A.leaving = not on
+        A.leaveUntil = (not on) and (os.clock() + cfg().ADS.BlendSeconds + 1.0) or nil
     end
 end
 
@@ -84,11 +112,10 @@ end
 -- pistols: yaw 90), so the sight sat off the screen centre or out of view. While aiming, the
 -- camera looks straight down the barrel; its own rotation comes back once the view has left it.
 local ZERO_ROT = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
-local NO_TURN = { X = 0.0, Y = 0.0, Z = 0.0, W = 1.0 } -- the same as a quaternion
 
 local function restoreCamera()
     local c = A.camRot
-    A.camRot, A.camRestoreAt = nil, nil
+    A.camRot = nil
     if c and U.valid(c.cam) then
         pcall(function() c.cam:K2_SetRelativeRotation(c.rot, false, {}, false) end)
     end
@@ -105,7 +132,6 @@ local function straightenCamera(cam)
         if not ok or math.abs(rot.Pitch) + math.abs(rot.Yaw) + math.abs(rot.Roll) < 0.01 then return end
         A.camRot = { cam = cam, key = key, rot = rot }
     end
-    A.camRestoreAt = nil
     pcall(function() cam:K2_SetRelativeRotation(ZERO_ROT, false, {}, false) end)
 end
 
@@ -134,22 +160,18 @@ local function setSightCamera(w)
         loc = { X = base.X + (fix.X or 0), Y = base.Y + (fix.Y or 0), Z = base.Z + (fix.Z or 0) }
     end
     local sig = string.format("%.2f %.2f %.2f", loc.X, loc.Y, loc.Z)
-    if A.sightWritten[key] ~= sig then
-        -- The game's aim timeline lerps the camera from IdleTramsfom to AimTransform: make both the sight.
-        local rot = fix.Pos and NO_TURN or t.Rotation
-        local nt = { Rotation = rot, Translation = loc, Scale3D = { X = 1, Y = 1, Z = 1 } }
-        U.set(w, "AimTransform", nt)
-        U.set(w, "IdleTramsfom", nt)
-        A.sightWritten[key] = sig
-    end
+    -- (Writing our place into the weapon's AimTransform/IdleTramsfom does not work: UE4SS
+    -- cannot set those structs from Lua, checked in game. Hence the timeline hook.)
     pcall(function() cam:K2_SetRelativeLocation(loc, false, {}, false) end)
     straightenCamera(cam)
-    -- The game's aim timeline moves the camera back while it plays: re-applied every frame
-    -- while aiming (A.update).
-    A.sightLoc, A.hold = loc, true
+    -- The game's aim timeline writes the camera's place and turn on every frame it plays (press
+    -- and release): ours goes back right after it (A.onAimTimeline) and on every update until
+    -- the view is back on the player (A.update), whatever order things tick in.
+    A.sightLoc, A.hold, A.sightWeapon = loc, true, U.addr(w)
     local fov = cfg().ADS.ZoomFOV[groupOf(w)] or cfg().FOV
     U.set(w, "CacheFOV", fov)
     pcall(function() cam:SetFieldOfView(fov) end)
+    A.sightFov = fov
     U.log("aim down the sights: " .. cls .. " at " .. sig)
     return true
 end
@@ -224,9 +246,12 @@ end
 -- view.lua calls this after entering (fp = true) or leaving first person.
 function A.onViewChanged(p, fp, V)
     if not fp then
-        if V.viewOnWeapon then viewWeapon(p, nil, V, false) end
-        A.aiming, A.aimMode, A.busy, A.hold, A.sightLoc = false, nil, false, false, nil
-        restoreCamera()
+        if V.viewOnWeapon and not A.leaving then viewWeapon(p, weaponOf(p), V, false) end
+        A.aiming, A.aimMode, A.busy, A.waiting = false, nil, false, false
+        if not A.leaving then -- else A.update hands the camera back once the view is home
+            V.viewOnWeapon, A.hold, A.sightLoc, A.sightWeapon = false, false, nil, nil
+            restoreCamera()
+        end
     end
     A.reticleAt = 0 -- reticles on the next update (spreads the work over two frames)
 end
@@ -235,8 +260,34 @@ end
 -- reticle states stay, so the next update can give them back.
 function A.reset()
     A.aiming, A.aimMode, A.busy, A.hold, A.sightLoc, A.scale = false, nil, false, false, nil, nil
-    A.sightBase, A.sightWritten = {}, {}
-    A.camRot, A.camRestoreAt = nil, nil -- the weapon is rebuilt on respawn
+    A.sightBase = {}
+    A.camRot, A.leaving, A.leaveUntil, A.sightWeapon, A.waiting = nil, false, nil, nil, false -- the weapon is rebuilt on respawn
+end
+
+-- Aiming starts with weapon w: on the press, or once a weapon switch is over.
+local function startAim(p, w, V, now)
+    local group = groupOf(w)
+    A.waiting = false
+    if group == "Scoped" then
+        viewWeapon(p, w, V, true)
+        A.aimMode = "scope"
+    elseif cfg().ADS.Mode == "Sights" and setSightCamera(w) then
+        viewWeapon(p, w, V, true)
+        A.aimMode = "sight"
+    else
+        blendTo(p, cfg().ADS.ZoomFOV[group] or cfg().FOV, now)
+        A.aimMode = "zoom"
+    end
+end
+
+-- Aiming stops: on the release, or when the game drops the aim by itself (A.update). The view
+-- blends back to the player; the sight camera stays put and straight until the view has fully
+-- left it (A.update), then gets the game's own turn back: no swing.
+local function stopAim(p, w, V, now)
+    A.aiming, A.aimMode, A.waiting = false, nil, false
+    if V.viewOnWeapon and not A.leaving then viewWeapon(p, w, V, false) end
+    if not A.leaving then A.sightLoc, A.hold, A.sightWeapon = nil, false, nil end
+    blendTo(p, cfg().FOV, now)
 end
 
 -- Post-hook Q1_Character:RMB(Relesed?): aim pressed (false) or released (true). The game's
@@ -246,30 +297,23 @@ function A.onRMB(self, released, V)
     local p = self:get()
     local w = weaponOf(p)
     if not w then return end
-    local group, now = groupOf(w), os.clock()
+    local now = os.clock()
     if not released:get() then
         A.aiming = true
-        if group == "Scoped" then
-            viewWeapon(p, w, V, true)
-            A.aimMode = "scope"
-        elseif cfg().ADS.Mode == "Sights" and setSightCamera(w) then
-            viewWeapon(p, w, V, true)
-            A.aimMode = "sight"
-        else
-            blendTo(p, cfg().ADS.ZoomFOV[group] or cfg().FOV, now)
-            A.aimMode = "zoom"
-        end
+        -- Pressed while a weapon is being drawn or put away: the game ignores it, and the sight
+        -- view would ride the gun's swing. Aiming starts once the gun is up (A.update).
+        if U.get(p, P.SwitchingWeapon, false) then A.waiting = true else startAim(p, w, V, now) end
     else
-        A.aiming, A.aimMode = false, nil
-        if V.viewOnWeapon then viewWeapon(p, w, V, false) end
-        A.sightLoc, A.hold = nil, false
-        -- turned back after the view has blended off the weapon camera (no swing on the way)
-        if A.camRot then A.camRestoreAt = now + cfg().ADS.BlendSeconds + 0.1 end
-        blendTo(p, cfg().FOV, now)
+        stopAim(p, w, V, now)
     end
     A.applyReticles(p, V)
     A.reticleAt = now + 0.05
     V.dirty = true -- the game resets the pose on release; put the weapon back up at once
+end
+
+-- True while aim.lua needs an update every frame (view.lua polls faster then).
+function A.wantsFrames()
+    return A.busy or A.hold or A.leaving or A.waiting
 end
 
 -- Post-hook Master_Hand_Weapon:Play_Equip_Sound. The weapon's init runs >= 0.1 s later and
@@ -279,23 +323,70 @@ function A.onEquip()
     A.scale = nil -- the new crosshair starts at the game's scale
 end
 
+-- Post-hook Master_Hand_Weapon:Timeline_1__UpdateFunc. The game's aim timeline has just set the
+-- sight camera's place, turn and zoom (lerped from the blueprint's IdleTramsfom to AimTransform:
+-- on pistols turned 90 degrees and 22 cm aside). Until 0.1.5 our per-update hold and the timeline
+-- took turns depending on tick order, so the view flicked sideways while it played (0.25 s on
+-- each press and release). Ours goes back here, after the game's, before the frame is drawn.
+function A.onAimTimeline(self)
+    if not A.sightLoc then return end
+    local w = self:get()
+    if U.addr(w) ~= A.sightWeapon then return end
+    local cam = U.get(w, P.WeaponCamera)
+    if U.valid(cam) then
+        pcall(function()
+            cam:K2_SetRelativeLocationAndRotation(A.sightLoc, ZERO_ROT, false, {}, false)
+            if A.sightFov then cam:SetFieldOfView(A.sightFov) end
+        end)
+    end
+end
+
 -- Called from view.lua on every player update (every frame while busy).
 function A.update(p, now, V)
     if A.busy then stepBlend(p, now) end
-    if A.hold then
-        local w = V.viewOnWeapon and weaponOf(p)
-        local cam = w and U.get(w, P.WeaponCamera)
-        if U.valid(cam) and A.sightLoc then
-            if A.camRot then -- a turned camera: held straight too, in the same engine call
-                pcall(function() cam:K2_SetRelativeLocationAndRotation(A.sightLoc, ZERO_ROT, false, {}, false) end)
-            else
-                pcall(function() cam:K2_SetRelativeLocation(A.sightLoc, false, {}, false) end)
-            end
-        else
-            A.sightLoc, A.hold = nil, false
+    if A.waiting then
+        if not (A.aiming and U.get(p, P.AimHeld, false)) then
+            A.aiming, A.waiting = false, false
+        elseif not U.get(p, P.SwitchingWeapon, false) then
+            local w = weaponOf(p)
+            if w then startAim(p, w, V, now); A.applyReticles(p, V) end
+        end
+    elseif A.aiming and V.viewOnWeapon and not A.leaving then
+        -- The game can drop the aim without a release: a weapon switch clears RMBDown and the
+        -- draw/holster swing would carry the sight view with it; or the game takes the view
+        -- itself (ForceToTP). Then aiming stops as on a release.
+        local w = weaponOf(p)
+        local pc = U.playerController(p)
+        local vt = nil
+        if pc then pcall(function() vt = pc:GetViewTarget() end) end
+        if U.get(p, P.SwitchingWeapon, false) or not U.get(p, P.AimHeld, true) or not w
+            or U.addr(w) ~= U.addr(vt) then
+            local seen = (U.valid(vt) and U.addr(vt) ~= U.addr(p)) and vt or w
+            stopAim(p, seen, V, now)
+            A.applyReticles(p, V)
         end
     end
-    if A.camRestoreAt and now >= A.camRestoreAt and not A.aiming then restoreCamera() end
+    if A.hold then
+        local w = V.viewOnWeapon and weaponOf(p)
+        local cam = w and U.addr(w) == A.sightWeapon and U.get(w, P.WeaponCamera)
+        if U.valid(cam) and A.sightLoc then -- place and turn in one engine call
+            pcall(function() cam:K2_SetRelativeLocationAndRotation(A.sightLoc, ZERO_ROT, false, {}, false) end)
+        else
+            A.sightLoc, A.hold, A.sightWeapon = nil, false, nil
+        end
+    end
+    if A.leaving then
+        -- Released: done once the view is back on the player with no blend left (or after a
+        -- safety second). Only then the weapon camera gets the game's own turn back.
+        local pc = U.playerController(p)
+        local vt = nil
+        if pc then pcall(function() vt = pc:GetViewTarget() end) end
+        if (pc and U.addr(vt) == U.addr(p) and not blending(pc)) or now > (A.leaveUntil or 0) then
+            A.leaving, A.leaveUntil, A.hold, A.sightLoc, A.sightWeapon = false, nil, false, nil, nil
+            V.viewOnWeapon = false
+            restoreCamera()
+        end
+    end
     if A.reticleAt and now >= A.reticleAt then
         -- keep checking while in first person: the game re-shows them (aim events, equips)
         A.reticleAt = V.isFP and (now + (A.aiming and 0.05 or 0.25)) or nil

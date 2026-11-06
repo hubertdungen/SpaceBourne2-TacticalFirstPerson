@@ -9,7 +9,7 @@
     tfps/util.lua      helpers (from HTR)
 ]]
 
-local VERSION = "0.1.5"
+local VERSION = "0.1.6"
 
 local U = require("tfps.util")
 
@@ -81,6 +81,7 @@ H.add(G.Fn.RMB, function(self, released) A.onRMB(self, released, V) end, "aim")
 H.add(G.Fn.Death, V.onDeath, "death")
 V.onDeathHook = A.reset
 H.add(G.Fn.WeaponEquip, A.onEquip, "weapon equip")
+H.add(G.Fn.AimTimeline, A.onAimTimeline, "aim timeline")
 for i, path in ipairs(G.Fn.Reloads) do H.add(path, V.onReload, "reload " .. i) end
 if cfg.UseGameCameraKey then
     -- The game's camera key / button switches the view itself; the mod follows its choice.
