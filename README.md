@@ -18,6 +18,8 @@ realism set (see below).
   to third person.
 - **Your gun in your hands:** a drawn weapon is held up in front of you, so you see it as in a
   shooter. Sprinting lowers it; it comes back up when you stop.
+
+  <img src="docs/shot-weapon-up.jpg" alt="A rifle held up in first person" width="640">
 - **Your own body:** your head, helmet and hair are hidden so they don't block the view; the rest
   stays. Look down and you see your legs and feet.
 - **Aiming down the sights:** with an assault rifle, a pulse rifle, a shotgun (the "Pulse
@@ -26,6 +28,9 @@ realism set (see below).
   pistol's holo and the laser pistol's red V sight. Other weapons zoom in at your eyes and show
   a small dot in the centre while you aim. Sniper and hunter rifles use the
   game's own scope.
+
+  <img src="docs/shot-sight-bullet-pistol.jpg" alt="Bullet pistol: aiming through its holo sight" width="49%"> <img src="docs/shot-sight-laser-pistol.jpg" alt="Laser pistol: front post over the red V" width="49%">
+  <img src="docs/shot-sight-rifle.jpg" alt="Assault rifle: aiming over the front post" width="49%"> <img src="docs/shot-sight-pulse-charger.jpg" alt="Pulse Charger: aiming through the red holo" width="49%">
 - **No crosshair in first person:** aim with the weapon. While you aim, every reticle is hidden,
   Clear HUD's and the HUD's small blue one included. Hit markers stay.
 - **Shots go where you look:** the game already fires from the camera, so there is nothing to
