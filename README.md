@@ -81,8 +81,8 @@ to it when the game's camera key does, hides your head parts instead of your who
 puts first person back each time the game falls back to third person for a weapon. Aiming
 narrows the field of view. Details: [DESIGN.md](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/blob/main/DESIGN.md).
 
-Everything runs on the game thread, from the game's own ticks: since 0.1.5 the mod uses no UE4SS
-background loops (LoopAsync), which could crash UE4SS 3.0.1 when several mods used them at once.
+Everything runs on the game thread, from the game's own ticks: the mod uses no UE4SS background
+loops (LoopAsync), which can crash UE4SS 3.0.1 when several mods use them at once.
 
 ## Status and known limits
 
