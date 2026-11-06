@@ -9,7 +9,7 @@
     tfps/util.lua      helpers (from HTR)
 ]]
 
-local VERSION = "0.1.4"
+local VERSION = "0.1.5"
 
 local U = require("tfps.util")
 
@@ -51,6 +51,8 @@ local function loadWantFP()
 end
 
 local H = require("tfps.hooks")
+local GT = require("tfps.gametick") -- timed work on the game thread (no LoopAsync: UE4SS crash, 0.1.5)
+GT.log = function(msg) U.warn(msg) end
 local G = require("tfps.gamedefs")
 local V = require("tfps.view")
 local A = require("tfps.aim")
@@ -72,7 +74,8 @@ end
 U.warn(string.format("=== Tactical First Person %s loaded, first person %s ===", VERSION, V.wantFP and "on" or "off"))
 
 -- Hooks -------------------------------------------------------------------
-H.add(G.Fn.Tick, function(self) V.onTick(self, A) end, "player tick")
+-- The player tick also pumps the timed work below (gametick.lua), on the game thread.
+H.add(G.Fn.Tick, function(self) V.onTick(self, A) end, "player tick", function() GT.pump("foot") end)
 H.add(G.Fn.SetViewMode, V.onSetViewMode, "view change")
 H.add(G.Fn.RMB, function(self, released) A.onRMB(self, released, V) end, "aim")
 H.add(G.Fn.Death, V.onDeath, "death")
@@ -87,22 +90,23 @@ elseif cfg.ToggleKey == "" then
 end
 
 -- Classes load late: look for them about once a second (a miss costs ~37 ms, see hooks.lua).
+-- On the game thread, pumped by the player tick (gametick.lua). Until 0.1.4 this was LoopAsync +
+-- ExecuteInGameThread: from UE4SS's async thread that writes a map all mods share without a lock,
+-- and two mods at once crashed the game (UE4SS.dll+0x87c104). After each load or possession
+-- (ClientRestart) the player tick is looked for right away, so the pump starts by itself.
 local lastStatus, profileAt = "", os.clock() + 30
-LoopAsync(1000, function()
-    ExecuteInGameThread(function()
-        local t0 = os.clock()
-        local ok, err = pcall(H.poll, t0)
-        if not ok then U.warn("poll: " .. tostring(err)) end
-        if U.Verbose and t0 > profileAt then
-            profileAt = t0 + 30
-            local prof = H.profile()
-            if prof ~= "" then U.log("profile 30 s: " .. prof) end
-        end
-        local on, off = H.status()
-        local s = string.format("hooks active %d, waiting %d", on, off)
-        if s ~= lastStatus then lastStatus = s; U.log(s) end
-    end)
-    return false
+GT.boot(function() H.prime(G.Fn.Tick) end)
+GT.every(1.0, function(t0)
+    local ok, err = pcall(H.poll, t0)
+    if not ok then U.warn("poll: " .. tostring(err)) end
+    if U.Verbose and t0 > profileAt then
+        profileAt = t0 + 30
+        local prof = H.profile()
+        if prof ~= "" then U.log("profile 30 s: " .. prof .. " | timed work: " .. GT.report()) end
+    end
+    local on, off = H.status()
+    local s = string.format("hooks active %d, waiting %d", on, off)
+    if s ~= lastStatus then lastStatus = s; U.log(s) end
 end)
 
 -- Key -------------------------------------------------------------------------------

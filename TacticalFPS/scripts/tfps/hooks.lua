@@ -18,11 +18,14 @@ local MAX_ERRORS = 25
 local CHECK_LOADED = 5
 local RETRY_MAX = 16
 
-function H.add(path, fn, tag)
+-- pre: optional, runs before the timed callback (the game-thread pump, gametick.lua: its jobs
+-- have their own timing and must not show up as a slow hook).
+function H.add(path, fn, tag, pre)
     local h = { path = path, fn = fn, tag = tag or path, errors = 0, disabled = false, on = false, slow = 0, slowAt = -1e9,
         calls = 0, total = 0 }
     h.cb = function(...)
         if h.disabled or TFPS_DISABLED then return end
+        if pre then pre() end
         local t0 = os.clock()
         local ok, err = pcall(h.fn, ...)
         local dt = os.clock() - t0
@@ -61,6 +64,19 @@ local function register(h)
 end
 
 -- Call on the game thread about once a second. now: os.clock(). Returns hooks registered.
+-- Look for one hook's class right now, whatever its pause (after a load: the player tick is what
+-- pumps the timed work, gametick.lua). Game thread only.
+function H.prime(path)
+    local g = H.groups[path:match("^(.-):") or path]
+    if not g then return 0 end
+    local c = StaticFindObject(g.cls)
+    local a = (c and c:IsValid()) and c:GetAddress() or nil
+    if not a or a == g.addr then return 0 end
+    g.addr, g.nextTry, g.retry = a, os.clock() + CHECK_LOADED, 1
+    for _, h in ipairs(g.hooks) do register(h) end
+    return #g.hooks
+end
+
 function H.poll(now)
     local probed, registered = false, 0
     for _, g in ipairs(H.order) do

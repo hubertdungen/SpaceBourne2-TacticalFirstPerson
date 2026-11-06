@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.5 (2026-11-06)
+
+- **Fixed: a UE4SS crash with many mods** ("Fatal error" in UE4SS.dll, at the main menu or in
+  play). Background loops (LoopAsync) run on their own threads without UE4SS's lock, and two
+  mods calling ExecuteInGameThread from there at the same moment broke a map UE4SS shares
+  between all mods. The mod's once-a-second hook check now runs on the game thread, from the
+  player's own tick (new `tfps\gametick.lua`, the same file in every mod of the set). The
+  crash is gone only once every mod of the set has this change.
+
 ## 0.1.4 (2026-11-06)
 
 - **Pistols aim through their own sights.** The bullet pistol puts its holo's red dot on the
