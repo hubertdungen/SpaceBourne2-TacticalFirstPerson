@@ -21,8 +21,11 @@ return {
     Body = "Full",
     HeadShadow = true,  -- your hidden head still casts a shadow
     -- Hold a drawn weapon up in front of you (the game's aiming pose) so you see it in first
-    -- person. Sprinting lowers it. false = the game's low hold (seen only when you look down).
+    -- person. Sprinting lowers it. false = every weapon in the game's low hold until you aim.
     WeaponUp = true,
+    -- Weapons that rest in the game's low hold and come up only while you aim (right mouse
+    -- button or gamepad aim): "Pistols", "All" or "None".
+    LowReady = "Pistols",
 
     FOV = 90,           -- field of view in first person (game default 90)
     NearClip = 5,       -- cm; how close to your eyes things are still drawn (game default 10). 0 = leave it

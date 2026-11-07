@@ -46,11 +46,18 @@ local V = {
 local function cfg() return TFPS.cfg end
 
 -- Weapon up: the game holds a drawn gun low at the hip, below the first-person view. ALS's
--- aiming pose (RotationMode Aiming) holds it at the shoulder, where you see it. Kept while a
--- weapon is out, except when sprinting (ALS cannot sprint while aiming) or in melee.
-local function weaponPose(p)
-    local up = V.isFP and cfg().WeaponUp and U.get(p, P.WeaponOut, false) and not U.get(p, P.Melee, false)
+-- aiming pose (RotationMode Aiming) holds it at the shoulder, where you see it. Up while aiming
+-- (and until the view is back from the sight); at rest up too, unless that weapon is held low
+-- until you aim (cfg LowReady: pistols by default). Never while sprinting (ALS cannot sprint
+-- while aiming) or in melee.
+local function weaponPose(p, A)
+    local up = V.isFP and U.get(p, P.WeaponOut, false) and not U.get(p, P.Melee, false)
         and U.get(p, P.DesiredGait, 1) ~= 2
+    if up and not A.wantsGunUp() then
+        local comp = U.get(p, P.Weapon, nil)
+        local w = U.valid(comp) and U.get(comp, "ChildActor", nil)
+        up = U.valid(w) and not A.lowReady(w)
+    end
     if not up and not V.poseOurs then return end -- not ours to change
     local want = up and G.RotationMode.Aiming or G.RotationMode.Looking
     if U.get(p, P.RotationMode, G.RotationMode.Looking) ~= want then
@@ -304,7 +311,7 @@ function V.update(p, now, A)
     -- game's view switch, a render flush, an animation change): one per frame, never all at once.
     if timed("view", step, p, now, A) then V.dirty = true; return end
     if timed("near clip", syncNearClip, p) then V.dirty = true; return end
-    timed("pose", weaponPose, p)
+    timed("pose", weaponPose, p, A)
 end
 
 step = function(p, now, A)

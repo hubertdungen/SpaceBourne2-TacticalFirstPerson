@@ -24,7 +24,8 @@ local A = { busy = false, fovFrom = 90, fovTo = 90, t0 = 0, dur = 0.15, aiming =
     sightWeapon = nil,  -- address of the weapon whose sight camera we hold
     leaving = false,    -- released: the view is blending back to the player (A.update ends it)
     leaveUntil = nil,   -- os.clock() safety limit for that
-    waiting = false,    -- aim pressed during a weapon switch: starts once the gun is up
+    waiting = false,    -- aim pressed, gun not up yet (weapon switch, or held low): starts once it is
+    raiseFrom = 0,      -- os.clock() when the gun started coming up for that aim
     savedVis = nil, hudSaved = nil, scale = nil, reticleAt = 0 }
 
 local function cfg() return TFPS.cfg end
@@ -264,14 +265,49 @@ function A.reset()
     A.camRot, A.leaving, A.leaveUntil, A.sightWeapon, A.waiting = nil, false, nil, nil, false -- the weapon is rebuilt on respawn
 end
 
--- Aiming starts with weapon w: on the press, or once a weapon switch is over.
+-- Weapons held low until you aim (cfg LowReady, pistols by default; with WeaponUp off, all).
+function A.lowReady(w)
+    local mode = cfg().LowReady or "Pistols"
+    if mode == "All" or cfg().WeaponUp == false then return true end
+    return mode == "Pistols" and groupOf(w) == "Pistol"
+end
+
+-- True while the gun must be up (view.lua's weapon pose): aiming, about to, or the view still
+-- on its sight on the way back.
+function A.wantsGunUp()
+    return A.aiming or A.waiting or A.leaving
+end
+
+-- The gun points where you look: ALS's aiming pose reached, its straightened sight camera
+-- within 3 degrees of the aim (measured in game: within 0.3 degrees in the aiming pose). With no
+-- sight camera to measure, a short raise time instead. The sight view starts only then, so it
+-- never rides the gun on its way up (or stays at the eyes while you sprint).
+local function gunReady(p, w, now)
+    if U.get(p, P.RotationMode, 0) ~= G.RotationMode.Aiming then return false end
+    local cam = A.sightLoc and U.addr(w) == A.sightWeapon and U.get(w, P.WeaponCamera)
+    local pc = U.playerController(p)
+    if not (U.valid(cam) and pc) then return now - A.raiseFrom > 0.35 end
+    local ok, off = pcall(function()
+        local r, c = cam:K2_GetComponentRotation(), pc:GetControlRotation()
+        return math.max(math.abs((r.Yaw - c.Yaw + 540) % 360 - 180), math.abs((r.Pitch - c.Pitch + 540) % 360 - 180))
+    end)
+    return (ok and off < 3) or now - A.raiseFrom > 0.8
+end
+
+-- Aiming with weapon w puts the view on a sight (scope or sight camera, placed now if needed).
+local function sightView(w)
+    if groupOf(w) == "Scoped" then return true end
+    return cfg().ADS.Mode == "Sights" and ((A.sightLoc ~= nil and U.addr(w) == A.sightWeapon) or setSightCamera(w))
+end
+
+-- Aiming starts with weapon w: on the press, or once the gun is up.
 local function startAim(p, w, V, now)
     local group = groupOf(w)
     A.waiting = false
     if group == "Scoped" then
         viewWeapon(p, w, V, true)
         A.aimMode = "scope"
-    elseif cfg().ADS.Mode == "Sights" and setSightCamera(w) then
+    elseif sightView(w) then
         viewWeapon(p, w, V, true)
         A.aimMode = "sight"
     else
@@ -286,7 +322,7 @@ end
 local function stopAim(p, w, V, now)
     A.aiming, A.aimMode, A.waiting = false, nil, false
     if V.viewOnWeapon and not A.leaving then viewWeapon(p, w, V, false) end
-    if not A.leaving then A.sightLoc, A.hold, A.sightWeapon = nil, false, nil end
+    if not A.leaving then A.sightLoc, A.hold, A.sightWeapon = nil, false, nil; restoreCamera() end
     blendTo(p, cfg().FOV, now)
 end
 
@@ -300,9 +336,15 @@ function A.onRMB(self, released, V)
     local now = os.clock()
     if not released:get() then
         A.aiming = true
-        -- Pressed while a weapon is being drawn or put away: the game ignores it, and the sight
-        -- view would ride the gun's swing. Aiming starts once the gun is up (A.update).
-        if U.get(p, P.SwitchingWeapon, false) then A.waiting = true else startAim(p, w, V, now) end
+        -- Pressed while a weapon is being drawn or put away (the game ignores it), or with the
+        -- gun held low (LowReady): view.lua raises it, and the sight view starts once it points
+        -- ahead (A.update), so it never rides the gun's swing.
+        A.raiseFrom = now
+        if U.get(p, P.SwitchingWeapon, false) or (sightView(w) and not gunReady(p, w, now)) then
+            A.waiting = true
+        else
+            startAim(p, w, V, now)
+        end
     else
         stopAim(p, w, V, now)
     end
@@ -346,10 +388,15 @@ function A.update(p, now, V)
     if A.busy then stepBlend(p, now) end
     if A.waiting then
         if not (A.aiming and U.get(p, P.AimHeld, false)) then
-            A.aiming, A.waiting = false, false
-        elseif not U.get(p, P.SwitchingWeapon, false) then
+            stopAim(p, weaponOf(p), V, now) -- let go before the gun was up
+        elseif U.get(p, P.SwitchingWeapon, false) then
+            A.raiseFrom = now -- the raise is timed from the end of the switch
+        else
             local w = weaponOf(p)
-            if w then startAim(p, w, V, now); A.applyReticles(p, V) end
+            if w and (not sightView(w) or gunReady(p, w, now)) then
+                startAim(p, w, V, now)
+                A.applyReticles(p, V)
+            end
         end
     elseif A.aiming and V.viewOnWeapon and not A.leaving then
         -- The game can drop the aim without a release: a weapon switch clears RMBDown and the
@@ -367,7 +414,7 @@ function A.update(p, now, V)
         end
     end
     if A.hold then
-        local w = V.viewOnWeapon and weaponOf(p)
+        local w = weaponOf(p) -- held from the press, before the view gets there (a gun coming up)
         local cam = w and U.addr(w) == A.sightWeapon and U.get(w, P.WeaponCamera)
         if U.valid(cam) and A.sightLoc then -- place and turn in one engine call
             pcall(function() cam:K2_SetRelativeLocationAndRotation(A.sightLoc, ZERO_ROT, false, {}, false) end)
@@ -385,6 +432,7 @@ function A.update(p, now, V)
             A.leaving, A.leaveUntil, A.hold, A.sightLoc, A.sightWeapon = false, nil, false, nil, nil
             V.viewOnWeapon = false
             restoreCamera()
+            V.dirty = true -- a gun held low (LowReady) goes down now, the view is home
         end
     end
     if A.reticleAt and now >= A.reticleAt then
