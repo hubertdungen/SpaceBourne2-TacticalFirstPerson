@@ -203,8 +203,9 @@ function V.onSetViewMode(self, newMode)
         V.keyAt = nil
         local want = (m == G.ViewMode.First)
         if want ~= V.wantFP then
+            -- No HUD line: the view change says it, and the game's HUD line beeps on every line
+            -- ("tututu" on each camera switch, 2026-11-07).
             V.wantFP, V.blockedUntil, V.kicks = want, 0, {}
-            V.message = want and "First person ON" or "First person OFF"
             if V.persist then V.persist() end
             U.log("game camera key: first person " .. (want and "on" or "off"))
         end
@@ -229,8 +230,7 @@ end
 function V.toggle()
     V.wantFP = not V.wantFP
     V.blockedUntil, V.kicks = 0, {}
-    V.dirty = true
-    V.message = V.wantFP and "First person ON" or "First person OFF"
+    V.dirty = true -- no HUD line (it beeps): the view change says it
 end
 
 -- Post-hook ALS_Base:ReceiveTick. Fires every frame for every ALS character (player and

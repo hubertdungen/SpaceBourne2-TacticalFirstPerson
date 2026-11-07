@@ -150,7 +150,9 @@ local function setSightCamera(w)
     local key = tostring(U.addr(w) or 0) .. cls
     local loc
     if fix.Pos then -- the game's camera is unusable for this class: a fixed position
-        loc = { X = fix.Pos.X, Y = fix.Pos.Y, Z = fix.Pos.Z }
+        -- (pistols; PistolEyeBack moves the eye further back along the sight line: the gun
+        -- looks further away, as at arm's length, and the sight still lines up)
+        loc = { X = fix.Pos.X - (tonumber(cfg().ADS.PistolEyeBack) or 0), Y = fix.Pos.Y, Z = fix.Pos.Z }
     else
         local base = A.sightBase[key]
         if not base then -- the game's own value, before we ever write it
@@ -267,7 +269,7 @@ end
 
 -- Weapons held low until you aim (cfg LowReady, pistols by default; with WeaponUp off, all).
 function A.lowReady(w)
-    local mode = cfg().LowReady or "Pistols"
+    local mode = cfg().LowReady or "None"
     if mode == "All" or cfg().WeaponUp == false then return true end
     return mode == "Pistols" and groupOf(w) == "Pistol"
 end

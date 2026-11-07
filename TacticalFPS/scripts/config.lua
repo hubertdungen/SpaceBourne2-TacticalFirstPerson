@@ -23,9 +23,9 @@ return {
     -- Hold a drawn weapon up in front of you (the game's aiming pose) so you see it in first
     -- person. Sprinting lowers it. false = every weapon in the game's low hold until you aim.
     WeaponUp = true,
-    -- Weapons that rest in the game's low hold and come up only while you aim (right mouse
-    -- button or gamepad aim): "Pistols", "All" or "None".
-    LowReady = "Pistols",
+    -- Weapons that rest in the game's low hold (at the hip, out of view) and come up only while
+    -- you aim (right mouse button or gamepad aim): "None", "Pistols" or "All".
+    LowReady = "None",
 
     FOV = 90,           -- field of view in first person (game default 90)
     NearClip = 5,       -- cm; how close to your eyes things are still drawn (game default 10). 0 = leave it
@@ -38,6 +38,9 @@ return {
         Mode = "Sights",
         ZoomFOV = { Pistol = 75, SMG = 70, Rifle = 65, Shotgun = 75 }, -- sniper rifles use the game's scope
         BlendSeconds = 0.15,
+        -- cm: aiming a pistol, your eye this much further back behind its sight (the gun looks
+        -- further away, as at arm's length). 0 = close behind the sight.
+        PistolEyeBack = 0,
     },
 
     -- Crosshair in first person: "Hidden", "Small" or "Game". Hit markers stay.
