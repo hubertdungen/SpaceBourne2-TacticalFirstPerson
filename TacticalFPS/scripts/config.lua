@@ -38,9 +38,6 @@ return {
         Mode = "Sights",
         ZoomFOV = { Pistol = 75, SMG = 70, Rifle = 65, Shotgun = 75 }, -- sniper rifles use the game's scope
         BlendSeconds = 0.15,
-        -- cm: aiming a pistol, your eye this much further back behind its sight (the gun looks
-        -- further away, as at arm's length). 0 = close behind the sight.
-        PistolEyeBack = 0,
     },
 
     -- Crosshair in first person: "Hidden", "Small" or "Game". Hit markers stay.
