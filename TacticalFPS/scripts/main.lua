@@ -9,9 +9,15 @@
     tfps/util.lua      helpers (from HTR)
 ]]
 
-local VERSION = "0.1.7"
+local VERSION = "0.1.8"
 
 local U = require("tfps.util")
+
+-- Lua memory (0.1.8): nearly all of this mod's garbage dies within a frame (the wrappers UE4SS
+-- makes for each engine call and hook). With the default incremental collector the heap still
+-- climbed to 76 MB in an 18-minute fight (2026-11-08 soak) and paused the game thread at times;
+-- generational collection reclaims young garbage in small, frequent passes.
+local GC_MODE = pcall(collectgarbage, "generational") and "generational" or "incremental"
 
 -- Settings -------------------------------------------------------------------
 local okCfg, cfg = pcall(require, "config")
@@ -96,7 +102,7 @@ end
 -- ExecuteInGameThread: from UE4SS's async thread that writes a map all mods share without a lock,
 -- and two mods at once crashed the game (UE4SS.dll+0x87c104). After each load or possession
 -- (ClientRestart) the player tick is looked for right away, so the pump starts by itself.
-local lastStatus, profileAt = "", os.clock() + 30
+local lastStatus, profileAt, gcCheckAt = "", os.clock() + 30, os.clock() + 60
 GT.boot(function() H.prime(G.Fn.Tick) end)
 GT.every(1.0, function(t0)
     local ok, err = pcall(H.poll, t0)
@@ -104,7 +110,18 @@ GT.every(1.0, function(t0)
     if U.Verbose and t0 > profileAt then
         profileAt = t0 + 30
         local prof = H.profile()
-        if prof ~= "" then U.log("profile 30 s: " .. prof .. " | timed work: " .. GT.report()) end
+        if prof ~= "" then
+            -- Lua heap now; once a minute (Debug only) also after a full collection, which tells
+            -- kept memory (a leak) from garbage not collected yet.
+            local mem = string.format(" | lua %s %.0f KB", GC_MODE, collectgarbage("count"))
+            if t0 > gcCheckAt then
+                gcCheckAt = t0 + 60
+                local c0 = os.clock()
+                collectgarbage("collect")
+                mem = mem .. string.format(", %.0f KB after a full collection (%.1f ms)", collectgarbage("count"), (os.clock() - c0) * 1000)
+            end
+            U.log("profile 30 s: " .. prof .. " | timed work: " .. GT.report() .. mem)
+        end
     end
     local on, off = H.status()
     local s = string.format("hooks active %d, waiting %d", on, off)
