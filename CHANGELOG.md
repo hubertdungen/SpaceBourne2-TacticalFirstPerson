@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.7 (2026-11-08)
+
+- **Steadier in long fights.** The mod's update ran once for every character on screen each
+  frame, enemies included; in a long fight with many enemies this left work for the script's
+  memory cleaner, and the game stuttered for up to 90 ms at a time, more as the fight went on.
+  It now runs once per frame, from the HUD. In testing, 18 minutes of fighting with up to 20
+  enemies ran at about 100 fps with no freeze (0.1.6 froze after 3 minutes of the same test).
+  The reticle checks now change the HUD only when something needs to change.
+- **Silent camera switch:** switching first/third person no longer shows a "First person
+  ON/OFF" line, whose HUD beep sounded on every switch.
+- **The sight waits for the gun:** the view moves to the sight only once the gun points where
+  you look, so it never swings with the gun (aiming while sprinting or right after a draw).
+- **New option `LowReady`** (off by default): `"Pistols"` or `"All"` keep those weapons in the
+  game's low hold until you aim.
+
 ## 0.1.6 (2026-11-06)
 
 - **Fixed: the pistol aim flicker and the camera whip on release.** On every aim press and

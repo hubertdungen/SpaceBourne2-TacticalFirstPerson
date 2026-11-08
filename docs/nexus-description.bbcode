@@ -4,13 +4,13 @@
 
 SpaceBourne 2 has a first-person view on foot, but it hides your whole body and throws you back to third person as soon as you draw a weapon. Tactical First Person keeps you in first person with a weapon in your hands: you see your own arms, body and gun, you aim by zooming in, and every shot goes where you look.
 
-Version 0.1.6 · [url=https://www.nexusmods.com/spacebourne2/mods/15]Nexus Mods page[/url] · UE4SS Lua mod · works alone or with the rest of the realism set (see below).
+Version 0.1.7 · [url=https://www.nexusmods.com/spacebourne2/mods/15]Nexus Mods page[/url] · UE4SS Lua mod · works alone or with the rest of the realism set (see below).
 
 [line]
 [size=5][b]What it does[/b][/size]
 
 [list]
-[*][b]Same key as the game:[/b] press the game's "switch camera" key (or gamepad button) on foot. Press it again for third person. Your choice is remembered.
+[*][b]Same key as the game:[/b] press the game's "switch camera" key (or gamepad button) on foot. Press it again for third person, silently (no HUD line or beep). Your choice is remembered.
 [*][b]First person with weapons:[/b] drawing, switching and firing weapons no longer sends you back to third person.
 [*][b]Your gun in your hands:[/b] a drawn weapon is held up in front of you, so you see it as in a shooter. Sprinting lowers it; it comes back up when you stop.
 [*][b]Your own body:[/b] your head, helmet and hair are hidden so they don't block the view; the rest stays. Look down and you see your legs and feet.
@@ -43,7 +43,7 @@ Option A (recommended): the [url=https://www.nexusmods.com/spacebourne2/mods/11]
 Option B, manual:
 
 [list=1]
-[*]Download TacticalFPS-0.1.6.zip from the [url=https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases]releases[/url].
+[*]Download TacticalFPS-0.1.7.zip from the [url=https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases]releases[/url].
 [*]Extract it into the game folder (...\steamapps\common\SpaceBourne 2\). It adds SB2\Binaries\Win64\Mods\TacticalFPS\; the enabled.txt inside turns it on.
 [*]In game, on foot, press the "switch camera" key.
 [/list]
@@ -62,7 +62,8 @@ Edit Mods\TacticalFPS\scripts\config.lua, then restart the game. Every line is o
 [*]StartInFirstPerson: start new sessions in first person (false; your last choice wins).
 [*]Body: "Full" (your body visible) or "Hidden" (the game's own look, whole body hidden).
 [*]HeadShadow: your hidden head still casts a shadow (true).
-[*]WeaponUp: hold a drawn weapon up in front of you (true). false keeps the game's low hold, where you only see the gun when you look down.
+[*]WeaponUp: hold a drawn weapon up in front of you (true). false keeps every weapon in the game's low hold (out of view) until you aim.
+[*]LowReady ("None"): "Pistols" or "All" keep those weapons in the game's low hold until you aim; aiming raises the gun and the sight view starts once it points ahead.
 [*]FOV (90): field of view in first person.
 [*]NearClip (5 cm): how close to your eyes things are still drawn; the game uses 10, which cuts your collar and the gun's stock. 0 leaves the game's value.
 [*]ADS.Mode: "Sights" (rifles, shotguns and pistols aim along their sights) or "Zoom" (every weapon zooms at your eyes). ADS.ZoomFOV: zoom per weapon type. ADS.BlendSeconds (0.15).

@@ -7,13 +7,13 @@ back to third person as soon as you draw a weapon. Tactical First Person keeps y
 person with a weapon in your hands: you see your own arms, body and gun, you aim by zooming in,
 and every shot goes where you look.
 
-Version 0.1.6 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
+Version 0.1.7 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
 realism set (see below).
 
 ## What it does
 
 - **Same key as the game:** press the game's "switch camera" key (or gamepad button) on foot.
-  Press it again for third person. Your choice is remembered.
+  Press it again for third person, silently (no HUD line or beep). Your choice is remembered.
 - **First person with weapons:** drawing, switching and firing weapons no longer sends you back
   to third person.
 - **Your gun in your hands:** a drawn weapon is held up in front of you, so you see it as in a
@@ -51,7 +51,7 @@ Option A (recommended): the [SpaceBourne 2 Realism installer](https://www.nexusm
 
 Option B, manual:
 
-1. Download `TacticalFPS-0.1.6.zip` from the
+1. Download `TacticalFPS-0.1.7.zip` from the
    [releases](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases).
 2. Extract it into the game folder (`...\steamapps\common\SpaceBourne 2\`). It adds
    `SB2\Binaries\Win64\Mods\TacticalFPS\`; the `enabled.txt` inside turns it on.
@@ -69,8 +69,10 @@ Edit `Mods\TacticalFPS\scripts\config.lua`, then restart the game. Every line is
 - `StartInFirstPerson`: start new sessions in first person (`false`; your last choice wins).
 - `Body`: `"Full"` (your body visible) or `"Hidden"` (the game's own look, whole body hidden).
 - `HeadShadow`: your hidden head still casts a shadow (`true`).
-- `WeaponUp`: hold a drawn weapon up in front of you (`true`). `false` keeps the game's low hold,
-  where you only see the gun when you look down.
+- `WeaponUp`: hold a drawn weapon up in front of you (`true`). `false` keeps every weapon in the
+  game's low hold (out of view) until you aim.
+- `LowReady` (`"None"`): `"Pistols"` or `"All"` keep those weapons in the game's low hold until
+  you aim; aiming raises the gun and the sight view starts once it points ahead.
 - `FOV` (90): field of view in first person.
 - `NearClip` (5 cm): how close to your eyes things are still drawn; the game uses 10, which cuts
   your collar and the gun's stock. `0` leaves the game's value.
@@ -121,6 +123,9 @@ hand: while aiming, and while the view moves to the sight and back, the sight of
 rifle and shotgun stays straight and in place on every frame (no sideways flick, no swing on
 release); very quick clicks turn the view around smoothly; switching weapons while aiming hands
 the view back without riding the gun; saves untouched.
+
+Soak-tested with the whole realism set: 18 minutes of fighting with up to 20 enemies, aiming and
+switching weapons every minute, at about 100 fps with no freeze; saves untouched.
 <!-- /nexus:skip -->
 
 Known limits:
