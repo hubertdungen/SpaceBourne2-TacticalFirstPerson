@@ -7,7 +7,7 @@ back to third person as soon as you draw a weapon. Tactical First Person keeps y
 person with a weapon in your hands: you see your own arms, body and gun, you aim by zooming in,
 and every shot goes where you look.
 
-Version 0.1.7 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
+Version 0.1.9 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
 realism set (see below).
 
 ## What it does
@@ -51,7 +51,7 @@ Option A (recommended): the [SpaceBourne 2 Realism installer](https://www.nexusm
 
 Option B, manual:
 
-1. Download `TacticalFPS-0.1.7.zip` from the
+1. Download `TacticalFPS-0.1.9.zip` from the
    [releases](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases).
 2. Extract it into the game folder (`...\steamapps\common\SpaceBourne 2\`). It adds
    `SB2\Binaries\Win64\Mods\TacticalFPS\`; the `enabled.txt` inside turns it on.
@@ -125,7 +125,8 @@ release); very quick clicks turn the view around smoothly; switching weapons whi
 the view back without riding the gun; saves untouched.
 
 Soak-tested with the whole realism set: 18 minutes of fighting with up to 20 enemies, aiming and
-switching weapons every minute, at about 100 fps with no freeze; saves untouched.
+switching weapons every minute, at about 100 fps with no freeze and the mod's memory flat (under
+1.6 MB); saves untouched.
 <!-- /nexus:skip -->
 
 Known limits:

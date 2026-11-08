@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.9 (2026-11-08)
+
+- **Fixed: memory kept while aiming.** Each time the mod placed the sight camera it handed the
+  engine a fresh scratch table, and the script loader (UE4SS 3.0.1) keeps every such table for
+  good: about 1.5 MB a minute of aiming, collected in longer and longer pauses. The mod now
+  reuses one table and moves the camera only when it is not already in place. In testing, 18
+  minutes of fighting with up to 20 enemies kept the mod's memory flat (under 1.6 MB) at about
+  100 fps, with no freeze and no stutter from the mod.
+
 ## 0.1.7 (2026-11-08)
 
 - **Steadier in long fights.** The mod's update ran once for every character on screen each
