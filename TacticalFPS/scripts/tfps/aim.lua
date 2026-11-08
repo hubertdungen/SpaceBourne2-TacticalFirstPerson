@@ -114,11 +114,29 @@ end
 -- camera looks straight down the barrel; its own rotation comes back once the view has left it.
 local ZERO_ROT = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
 
+-- One table for the sweep result the K2_SetRelative* setters hand back (an out parameter).
+-- UE4SS 3.0.1 pins the table passed for an out parameter in the Lua registry on every call and
+-- never frees it, so a new {} per call kept about 1.5 MB a minute while aiming (2026-11-08). One
+-- reused table keeps only a registry slot per call, and the per-frame hold below writes the
+-- camera only when it is not already in place.
+local HIT = {}
+
+-- The sight camera at our place, looking down the barrel; written only if it moved.
+local function holdCamera(cam)
+    local ok, same = pcall(function()
+        local l, r, s = cam.RelativeLocation, cam.RelativeRotation, A.sightLoc
+        return math.abs(l.X - s.X) + math.abs(l.Y - s.Y) + math.abs(l.Z - s.Z) < 0.01
+            and math.abs(r.Pitch) + math.abs(r.Yaw) + math.abs(r.Roll) < 0.01
+    end)
+    if ok and same then return end
+    pcall(function() cam:K2_SetRelativeLocationAndRotation(A.sightLoc, ZERO_ROT, false, HIT, false) end)
+end
+
 local function restoreCamera()
     local c = A.camRot
     A.camRot = nil
     if c and U.valid(c.cam) then
-        pcall(function() c.cam:K2_SetRelativeRotation(c.rot, false, {}, false) end)
+        pcall(function() c.cam:K2_SetRelativeRotation(c.rot, false, HIT, false) end)
     end
 end
 
@@ -133,7 +151,7 @@ local function straightenCamera(cam)
         if not ok or math.abs(rot.Pitch) + math.abs(rot.Yaw) + math.abs(rot.Roll) < 0.01 then return end
         A.camRot = { cam = cam, key = key, rot = rot }
     end
-    pcall(function() cam:K2_SetRelativeRotation(ZERO_ROT, false, {}, false) end)
+    pcall(function() cam:K2_SetRelativeRotation(ZERO_ROT, false, HIT, false) end)
 end
 
 -- Aiming down the sights: every hand weapon has its own camera, placed by the game
@@ -163,7 +181,7 @@ local function setSightCamera(w)
     local sig = string.format("%.2f %.2f %.2f", loc.X, loc.Y, loc.Z)
     -- (Writing our place into the weapon's AimTransform/IdleTramsfom does not work: UE4SS
     -- cannot set those structs from Lua, checked in game. Hence the timeline hook.)
-    pcall(function() cam:K2_SetRelativeLocation(loc, false, {}, false) end)
+    pcall(function() cam:K2_SetRelativeLocation(loc, false, HIT, false) end)
     straightenCamera(cam)
     -- The game's aim timeline writes the camera's place and turn on every frame it plays (press
     -- and release): ours goes back right after it (A.onAimTimeline) and on every update until
@@ -378,10 +396,8 @@ function A.onAimTimeline(self)
     if U.addr(w) ~= A.sightWeapon then return end
     local cam = U.get(w, P.WeaponCamera)
     if U.valid(cam) then
-        pcall(function()
-            cam:K2_SetRelativeLocationAndRotation(A.sightLoc, ZERO_ROT, false, {}, false)
-            if A.sightFov then cam:SetFieldOfView(A.sightFov) end
-        end)
+        holdCamera(cam)
+        if A.sightFov then pcall(function() cam:SetFieldOfView(A.sightFov) end) end
     end
 end
 
@@ -418,8 +434,8 @@ function A.update(p, now, V)
     if A.hold then
         local w = weaponOf(p) -- held from the press, before the view gets there (a gun coming up)
         local cam = w and U.addr(w) == A.sightWeapon and U.get(w, P.WeaponCamera)
-        if U.valid(cam) and A.sightLoc then -- place and turn in one engine call
-            pcall(function() cam:K2_SetRelativeLocationAndRotation(A.sightLoc, ZERO_ROT, false, {}, false) end)
+        if U.valid(cam) and A.sightLoc then -- place and turn in one engine call, only if it moved
+            holdCamera(cam)
         else
             A.sightLoc, A.hold, A.sightWeapon = nil, false, nil
         end

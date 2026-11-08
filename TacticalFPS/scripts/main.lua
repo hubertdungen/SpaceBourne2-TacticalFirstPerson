@@ -9,15 +9,13 @@
     tfps/util.lua      helpers (from HTR)
 ]]
 
-local VERSION = "0.1.8"
+local VERSION = "0.1.9"
 
 local U = require("tfps.util")
 
--- Lua memory (0.1.8): nearly all of this mod's garbage dies within a frame (the wrappers UE4SS
--- makes for each engine call and hook). With the default incremental collector the heap still
--- climbed to 76 MB in an 18-minute fight (2026-11-08 soak) and paused the game thread at times;
--- generational collection reclaims young garbage in small, frequent passes.
-local GC_MODE = pcall(collectgarbage, "generational") and "generational" or "incremental"
+-- Lua memory: the Debug profile below logs the heap. (Growth found 2026-11-08 was UE4SS keeping
+-- each out-parameter table passed to an engine call; aim.lua passes one reused table.)
+local GC_MODE = "incremental"
 
 -- Settings -------------------------------------------------------------------
 local okCfg, cfg = pcall(require, "config")
