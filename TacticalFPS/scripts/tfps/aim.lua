@@ -189,18 +189,20 @@ end
 
 -- The game's on-foot crosshair (WB_CrosshairBase_C). Only its crosshair child is touched, so
 -- hit and damage indicators keep working.
+-- Widgets are only written when their visibility really changes (0.1.7): these checks run up
+-- to 20 times a second, and the HUD's widget trees are shared with other mods (Clear HUD).
 local function setCrosshair(p, hide)
     local ch = U.get(p, P.Crosshair)
     if not U.valid(ch) then return end
     local ok, child = pcall(function() return ch:GetCrosshairChild() end)
     if not (ok and U.valid(child)) then return end
     if hide then
+        local okv, v = pcall(function() return child:GetVisibility() end)
         if A.savedVis == nil then
-            local okv, v = pcall(function() return child:GetVisibility() end)
             local shown = okv and v ~= G.Slate.Hidden and v ~= G.Slate.Collapsed
             A.savedVis = shown and v or G.Slate.HitTestInvisible
         end
-        pcall(function() child:SetVisibility(G.Slate.Hidden) end)
+        if not (okv and v == G.Slate.Hidden) then pcall(function() child:SetVisibility(G.Slate.Hidden) end) end
     elseif A.savedVis ~= nil then
         pcall(function() child:SetVisibility(A.savedVis) end)
         A.savedVis = nil
@@ -215,12 +217,12 @@ local function setHudReticle(ctx, hide)
     local w = ok and U.valid(hud) and U.get(hud, P.HudReticle) or nil
     if not U.valid(w) then return end
     if hide then
+        local okv, v = pcall(function() return w:GetVisibility() end)
         if A.hudSaved == nil then
-            local okv, v = pcall(function() return w:GetVisibility() end)
             local shown = okv and v ~= G.Slate.Hidden and v ~= G.Slate.Collapsed
             A.hudSaved = shown and v or G.Slate.HitTestInvisible
         end
-        pcall(function() w:SetVisibility(G.Slate.Hidden) end)
+        if not (okv and v == G.Slate.Hidden) then pcall(function() w:SetVisibility(G.Slate.Hidden) end) end
     else
         pcall(function() w:SetVisibility(A.hudSaved) end)
         A.hudSaved = nil

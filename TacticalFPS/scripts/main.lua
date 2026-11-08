@@ -74,8 +74,9 @@ end
 U.warn(string.format("=== Tactical First Person %s loaded, first person %s ===", VERSION, V.wantFP and "on" or "off"))
 
 -- Hooks -------------------------------------------------------------------
--- The player tick also pumps the timed work below (gametick.lua), on the game thread.
-H.add(G.Fn.Tick, function(self) V.onTick(self, A) end, "player tick", function() GT.pump("foot") end)
+-- The player update (the HUD drawing, once per frame) also pumps the timed work below
+-- (gametick.lua), on the game thread.
+H.add(G.Fn.Tick, function(self) V.onTick(self, A) end, "player tick", function() GT.pump("hud") end)
 H.add(G.Fn.SetViewMode, V.onSetViewMode, "view change")
 H.add(G.Fn.RMB, function(self, released) A.onRMB(self, released, V) end, "aim")
 H.add(G.Fn.Death, V.onDeath, "death")

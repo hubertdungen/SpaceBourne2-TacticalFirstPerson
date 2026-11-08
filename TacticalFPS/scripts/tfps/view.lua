@@ -15,8 +15,8 @@
      back, as soon as nothing blocks it (V.blockReason).
    * Leaving = BPI_Set_ViewMode(0): Q1_Character restores head/helmet the way the game wants
      them (oxygen, helmet light) and the view target is never touched (cutscene-safe).
-   * All work happens in a ReceiveTick post-hook on ALS characters, throttled to PollSeconds;
-     it runs about once per frame only while something is pending (dirty, FOV blend).
+   * All work happens in a post-hook on the player's HUD drawing (once per frame), throttled to
+     PollSeconds; it runs every frame only while something is pending (dirty, FOV blend, aim).
 ]]
 
 local U = require("tfps.util")
@@ -233,10 +233,11 @@ function V.toggle()
     V.dirty = true -- no HUD line (it beeps): the view change says it
 end
 
--- Post-hook ALS_Base:ReceiveTick. Fires every frame for every ALS character (player and
--- NPCs), so the common path is one clock compare. When due, the ticking actor is only used
--- as a world context to ask the engine for the possessed pawn (instant), so no class checks
--- run per NPC and nothing allocates per NPC per frame.
+-- Post-hook Q1Hud:ReceiveDrawHUD: once per frame, on foot and in ships (0.1.7; until then
+-- ALS_Base:ReceiveTick, once per frame for every ALS character, NPCs included: each call left
+-- garbage in this Lua state, and in a long fight its collection held the game thread up to
+-- 92 ms). The common path is one clock compare; when due, the HUD is only used as a world
+-- context to ask the engine for the possessed pawn.
 -- Post-hook ALS_Base:OnDead. When the player dies the game ragdolls, destroys the weapon and may
 -- reload the map: objects die mid-frame. The mod then makes no engine call at all for 15 s and
 -- forgets its state; it starts again from the new pawn (0.1.2: a crash when killed in first

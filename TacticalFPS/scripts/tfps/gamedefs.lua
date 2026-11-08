@@ -20,8 +20,11 @@ G.Slate         = { Visible = 0, Collapsed = 1, Hidden = 2, HitTestInvisible = 3
 
 -- Hooked functions (all Blueprint functions; post-hooks) ------------------------
 G.Fn = {
-    -- every frame, every ALS character; the only place we get a live player object
-    Tick         = G.ALSBase .. ":ReceiveTick",
+    -- the player's HUD drawing: once per frame, on foot and in ships (0.1.7). Until 0.1.6 this
+    -- was ALS_Base:ReceiveTick, which fires for every ALS character: in a long fight with many
+    -- NPCs each call left garbage in this mod's Lua state, and collecting it held the game
+    -- thread up to 92 ms at a time (2026-11-08, before a crash in a dungeon).
+    Tick         = "/Game/1Data/Q1Hud.Q1Hud_C:ReceiveDrawHUD",
     -- every view change of the player: our toggle, the game's camera key, ForceToTP (weapon
     -- drawn, dialog, melee, ragdoll, hover), OnRotationModeChanged. Q1_Character overrides
     -- ALS_Base's version (and calls it), so hooking Q1's fires for the player only.
