@@ -404,12 +404,6 @@ end
 -- Called from view.lua on every player update (every frame while busy).
 function A.update(p, now, V)
     if A.busy then stepBlend(p, now) end
-    -- The F prompt (Q1_Character CalculateInteractTrace) is a wide box trace from the camera that
-    -- ignores the pawn but not its weapon, a separate actor: in first person it starts where the
-    -- gun is held and can hit the gun, so no prompt. A gun in the player's hand needs no collision.
-    local hw = weaponOf(p)
-    local ha = hw and U.addr(hw)
-    if ha and ha ~= A.noCollide and pcall(function() hw:SetActorEnableCollision(false) end) then A.noCollide = ha end
     if A.waiting then
         if not (A.aiming and U.get(p, P.AimHeld, false)) then
             stopAim(p, weaponOf(p), V, now) -- let go before the gun was up

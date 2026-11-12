@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.10 (2026-11-12)
+
+- **Fixed: lean flipping or sticking in first person.** The game counts lean key presses and
+  releases, but only while the character is in its aiming stance; first person changes the
+  stance as you play (weapon up, sprint, melee, draws), so a press could be lost while its
+  release still counted: the lean flipped to the other side and stayed there after you let go.
+  The mod now sets the lean from the keys you actually hold (keyboard and gamepad). Tested in
+  game: the sequence that left the lean stuck to the right on 0.1.9 now ends straight, and
+  leaning right then letting go works every time.
+
 ## 0.1.9 (2026-11-08)
 
 - **Fixed: memory kept while aiming.** Each time the mod placed the sight camera it handed the
