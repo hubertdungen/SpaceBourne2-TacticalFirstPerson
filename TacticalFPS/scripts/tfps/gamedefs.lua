@@ -76,7 +76,7 @@ G.P = {
     Head = "Male_Head", Helmet = "Helmet_SM", Hair = "Male_Hair_01", HeadLight = "HeadLight",
     Melee = "MeleeAttackOn?", Weapon = "CurrentWeapon",   -- ChildActorComponent -> .ChildActor
     Crosshair = "CrossHair",                               -- WB_CrosshairBase_C
-    UsingScope = "UsingScope", Lean = "LeanDirection",
+    UsingScope = "UsingScope", Lean = "LeanDirection", LeanValue = "LeaningValue",
     SwitchingWeapon = "SwitchingWeapon",                   -- drawing / putting away a weapon
     -- Master_Hand_Weapon
     WeaponCamera = "Camera",                               -- the weapon's own sight camera

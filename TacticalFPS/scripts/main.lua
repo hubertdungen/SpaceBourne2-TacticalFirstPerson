@@ -9,7 +9,7 @@
     tfps/util.lua      helpers (from HTR)
 ]]
 
-local VERSION = "0.1.9"
+local VERSION = "0.1.10"
 
 local U = require("tfps.util")
 
@@ -87,6 +87,15 @@ H.add(G.Fn.Death, V.onDeath, "death")
 V.onDeathHook = A.reset
 H.add(G.Fn.WeaponEquip, A.onEquip, "weapon equip")
 H.add(G.Fn.AimTimeline, A.onAimTimeline, "aim timeline")
+-- Lean keys (keyboard and gamepad): the game's lean counter is set from the keys held (lean.lua).
+local LEAN = require("tfps.lean")
+for _, k in ipairs({ { 37, "C_LeanLeft", "left", true }, { 38, "C_LeanLeft", "left", false },
+        { 39, "C_LeanRight", "right", true }, { 40, "C_LeanRight", "right", false },
+        { 21, "GPC_LeanLeft", "left", true }, { 22, "GPC_LeanLeft", "left", false },
+        { 23, "GPC_LeanRight", "right", true }, { 24, "GPC_LeanRight", "right", false } }) do
+    local path = string.format("%s:InpActEvt_%s_K2Node_EnhancedInputActionEvent_%d", G.Player, k[2], k[1])
+    H.add(path, function(self) LEAN.onKey(self, k[3], k[4]) end, "lean key")
+end
 for i, path in ipairs(G.Fn.Reloads) do H.add(path, V.onReload, "reload " .. i) end
 if cfg.UseGameCameraKey then
     -- The game's camera key / button switches the view itself; the mod follows its choice.

@@ -21,6 +21,7 @@
 
 local U = require("tfps.util")
 local G = require("tfps.gamedefs")
+local LEAN = require("tfps.lean")
 local P = G.P
 
 local V = {
@@ -313,6 +314,7 @@ function V.update(p, now, A)
     if timed("view", step, p, now, A) then V.dirty = true; return end
     if timed("near clip", syncNearClip, p) then V.dirty = true; return end
     timed("pose", weaponPose, p, A)
+    if LEAN.held() then LEAN.fix(p) end -- a pose change while a lean key is held keeps the lean right
 end
 
 step = function(p, now, A)
