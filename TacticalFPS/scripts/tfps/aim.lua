@@ -77,7 +77,9 @@ local function viewWeapon(p, w, V, on)
             pc:SetViewTargetWithBlend(target, 0, 0, 0, false)
             pc:SetViewTargetWithBlend(other, 0, 0, 0, false)
         end
-        pc:SetViewTargetWithBlend(target, cfg().ADS.BlendSeconds, 0, 0, mid)
+        -- eased in and out (VTBlend_EaseInOut = 4, exponent 2): a linear 0.15 s move from the eyes
+        -- to the sight read as a jump right after the press (user, 2026-11-14)
+        pc:SetViewTargetWithBlend(target, cfg().ADS.BlendSeconds, 4, 2.0, mid)
     end)
     if ok then
         V.viewOnWeapon = true
