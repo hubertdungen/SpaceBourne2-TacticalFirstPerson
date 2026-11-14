@@ -22,6 +22,7 @@
 local U = require("tfps.util")
 local G = require("tfps.gamedefs")
 local LEAN = require("tfps.lean")
+local INT = require("tfps.interact")
 local P = G.P
 
 local V = {
@@ -279,6 +280,7 @@ function V.onTick(self, A)
     local now = os.clock()
     if now < V.deadUntil then return end
     if V.reloadAt and now >= V.guardNext then guardReload(self, now) end
+    if INT.target and V.isFP then INT.frame(INT.p) end -- F target past a squad soldier (interact.lua)
     if now < ((V.dirty or A.wantsFrames()) and V.nextFast or V.nextPoll) then return end
     V.nextFast = now + 0.008             -- while something is pending: about once per frame
     V.nextPoll = now + cfg().PollSeconds
@@ -315,6 +317,7 @@ function V.update(p, now, A)
     if timed("near clip", syncNearClip, p) then V.dirty = true; return end
     timed("pose", weaponPose, p, A)
     if LEAN.held() then LEAN.fix(p) end -- a pose change while a lean key is held keeps the lean right
+    if V.isFP then timed("interact", INT.update, p, U.playerController(p), now) end
 end
 
 step = function(p, now, A)

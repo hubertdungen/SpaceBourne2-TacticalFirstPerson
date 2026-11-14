@@ -1,0 +1,135 @@
+--[[
+  F prompt past squad soldiers (0.1.11).
+
+  The game picks what F interacts with on every tick (Q1_Character: CalculateInteractTrace, then
+  BoxTraceSingle from the camera, box 2 x 128 x 32 cm, so 2.56 m wide, channel 4) and takes the first
+  actor in that box. A squad soldier next to you is inside the box from its start, so the loot box
+  or door right in front of you gets no prompt; and F does nothing on a healthy soldier (the game
+  only handles a dead or injured one). Tested 2026-11-14: soldier 70 cm to your right or left,
+  standing or crouched, level or looking down at the box: the game picked the soldier (at 0 cm)
+  every time; with the soldier away it picked the box.
+
+  Here, in first person, while the game's pick is a healthy squad soldier near you, a narrow box
+  (24 cm wide) along the view looks again. If it finds something the game can interact with, in
+  the game's own reach, that becomes the F target and gets its prompt, every frame, as the game
+  does for its own pick. A soldier right in front of you stays the game's pick.
+  Traced at most 5 times a second, and only then: each UE4SS call with an out param keeps a
+  registry entry (0.1.9).
+]]
+
+local I = { target = nil }
+
+local SQUAD, FOOT, CHARACTER = "Q1_GroundSquad_C", "Master_Interactive_Foot_C", "Character"
+local KSL = nil
+local HIT, IGN = {}, {}
+local HALF = { X = 2, Y = 12, Z = 32 }
+local RED, GREEN = { R = 1, G = 0, B = 0, A = 1 }, { R = 0, G = 1, B = 0, A = 1 }
+local isCache = {}
+local nextTrace = 0
+
+local function valid(o)
+    if o == nil then return false end
+    local ok, v = pcall(function() return o:IsValid() end)
+    return ok and v == true
+end
+
+-- the actor's class is `name` or derives from it (cached per class)
+local function isA(a, name)
+    local ok, r = pcall(function()
+        local c = a:GetClass()
+        local key = name .. ":" .. tostring(c:GetAddress())
+        if isCache[key] ~= nil then return isCache[key] end
+        local found = false
+        for _ = 1, 16 do
+            if not valid(c) then break end
+            if c:GetFName():ToString() == name then found = true; break end
+            c = c:GetSuperStruct()
+        end
+        isCache[key] = found
+        return found
+    end)
+    return ok and r
+end
+
+local function healthySoldier(a)
+    if not (valid(a) and isA(a, SQUAD)) then return false end
+    local ok, r = pcall(function() return not a.NPCDead and not a.InInjuredMode end)
+    return ok and r
+end
+
+-- what the game would do with this actor as its pick: a Master_Interactive_Foot within its own
+-- reach (InteractionLenght, 530..1500 cm), anything else that is not a character within 530 cm
+local function usable(p, t)
+    if not valid(t) or isA(t, CHARACTER) then return false end
+    local ok, r = pcall(function()
+        local f = t.InInteractRadious
+        if not (f and f:IsValid()) then return false end
+        local reach = 530
+        if isA(t, FOOT) then
+            if t.DisableInteract then return false end
+            reach = math.min(1500, math.max(530, t.InteractionLenght or 530))
+        end
+        return p:GetDistanceTo(t) <= reach
+    end)
+    return ok and r
+end
+
+local function trace(p, pc)
+    if not valid(KSL) then KSL = StaticFindObject("/Script/Engine.Default__KismetSystemLibrary") end
+    if not valid(KSL) then return nil end
+    local cm = pc.PlayerCameraManager
+    local s, r = cm:GetCameraLocation(), cm:GetCameraRotation()
+    local cp, sp = math.cos(math.rad(r.Pitch)), math.sin(math.rad(r.Pitch))
+    local cy, sy = math.cos(math.rad(r.Yaw)), math.sin(math.rad(r.Yaw))
+    local e = { X = s.X + cp * cy * 3400, Y = s.Y + cp * sy * 3400, Z = s.Z + sp * 3400 }
+    IGN[1] = p
+    local okc, res = pcall(function()
+        return KSL:BoxTraceSingle(p, s, e, HALF, pc:GetControlRotation(), 4, false, IGN, 0, HIT, true, RED, GREEN, 0.0)
+    end)
+    if not (okc and res) then return nil end
+    local a = nil
+    pcall(function() a = HIT.Actor; if a and a.Get then a = a:Get() end end)
+    return valid(a) and a or nil
+end
+
+-- Polled with the view update (first person only): look again when the game picked a soldier.
+function I.update(p, pc, now)
+    I.p = p
+    local pick = nil
+    pcall(function() pick = p.InteractingActor end)
+    if I.target and valid(pick) and pick:GetAddress() ~= I.targetAddr and not healthySoldier(pick) then
+        I.target = nil -- the game found something itself
+    end
+    if now < nextTrace or not pc then return end
+    if not healthySoldier(pick) then I.target = nil; return end
+    local near = false
+    pcall(function() near = p:GetDistanceTo(pick) <= 400 end)
+    if not near then I.target = nil; return end
+    nextTrace = now + 0.2
+    local okt, t = pcall(trace, p, pc)
+    if not okt then t = nil end
+    if t and usable(p, t) then
+        I.target, I.targetAddr = t, t:GetAddress()
+    else
+        I.target = nil
+    end
+end
+
+-- Every frame while a target is held: the game set its pick again on this tick; ours wins.
+function I.frame(p)
+    if not valid(p) then I.target = nil; return end
+    local t = I.target
+    if not valid(t) then I.target = nil; return end
+    local pick = nil
+    pcall(function() pick = p.InteractingActor end)
+    if not healthySoldier(pick) then
+        if not (valid(pick) and pick:GetAddress() == I.targetAddr) then I.target = nil end
+        return
+    end
+    pcall(function() p.InteractingActor = t end)
+    pcall(function() t:InInteractRadious(nil) end)
+end
+
+function I.reset() I.target = nil end
+
+return I
