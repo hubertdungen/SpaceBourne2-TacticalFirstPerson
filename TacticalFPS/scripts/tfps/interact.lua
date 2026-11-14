@@ -23,7 +23,9 @@ local I = { target = nil }
 
 local SQUAD, FOOT, CHARACTER = "Q1_GroundSquad_C", "Master_InteractiveFoot_C", "Character"
 local KSL = nil
-local IGN = {}
+local IGN, HIT = {}, {}
+local reuse = true -- reuse HIT, emptied before each trace (falls back to a fresh table)
+local last = { x = 0, y = 0, z = 0, pitch = 0, yaw = 0, t = -10, pick = nil }
 local HALF = { X = 2, Y = 12, Z = 32 }
 local RED, GREEN = { R = 1, G = 0, B = 0, A = 1 }, { R = 0, G = 1, B = 0, A = 1 }
 local isCache = {}
@@ -85,14 +87,29 @@ local function trace(p, pc)
     local cy, sy = math.cos(math.rad(r.Yaw)), math.sin(math.rad(r.Yaw))
     local e = { X = s.X + cp * cy * 3400, Y = s.Y + cp * sy * 3400, Z = s.Z + sp * 3400 }
     IGN[1] = p
-    -- a fresh hit table each time: a reused one came back with no new hit in game (2026-11-14)
-    local hit = {}
-    local okc, res = pcall(function()
-        return KSL:BoxTraceSingle(p, s, e, HALF, pc:GetControlRotation(), 4, false, IGN, 0, hit, true, RED, GREEN, 0.0)
-    end)
+    local rot = pc:GetControlRotation()
+    -- A hit table still holding the last hit gave no new hit in game (ab5dbcd), a fresh one each
+    -- time works but UE4SS keeps every out-param table: about 1.6 MB a minute at 5 traces a
+    -- second (2026-11-14). So the same table, emptied first; a fresh one if that gives nothing.
+    local function run(hit)
+        local okc, res = pcall(function()
+            return KSL:BoxTraceSingle(p, s, e, HALF, rot, 4, false, IGN, 0, hit, true, RED, GREEN, 0.0)
+        end)
+        local a = nil
+        if okc and res then pcall(function() a = hit.Actor; if a and a.Get then a = a:Get() end end) end
+        return okc, res, a
+    end
+    local okc, res, a
+    if reuse then
+        for k in pairs(HIT) do HIT[k] = nil end
+        okc, res, a = run(HIT)
+        if not okc or (res and not valid(a)) then
+            reuse = false
+            U.log("F past a squad soldier: emptied hit table gave no hit, fresh tables from now on")
+        end
+    end
+    if not reuse then okc, res, a = run({}) end
     if not (okc and res) then return nil end
-    local a = nil
-    pcall(function() a = hit.Actor; if a and a.Get then a = a:Get() end end)
     return valid(a) and a or nil
 end
 
@@ -101,10 +118,22 @@ function I.update(p, pc, now)
     I.p = p
     local pick = nil
     pcall(function() pick = p.InteractingActor end)
+    -- our own target there means the game's pick was still the soldier on this tick (I.frame)
+    if I.target and valid(pick) and pick:GetAddress() == I.targetAddr then pick = I.soldier end
     if I.target and valid(pick) and pick:GetAddress() ~= I.targetAddr and not healthySoldier(pick) then
         I.target = nil -- the game found something itself
     end
     if now < nextTrace or not pc then return end
+    -- trace again only when the view moved or turned, the game's soldier changed, or after 1 s
+    local c, r = nil, nil
+    pcall(function() local cm = pc.PlayerCameraManager; c, r = cm:GetCameraLocation(), cm:GetCameraRotation() end)
+    if not c then return end
+    local turned = math.abs(r.Pitch - last.pitch) > 2 or math.abs(((r.Yaw - last.yaw + 180) % 360) - 180) > 2
+    local moved = math.abs(c.X - last.x) + math.abs(c.Y - last.y) + math.abs(c.Z - last.z) > 5
+    local same = valid(pick) and last.pick == pick:GetAddress()
+    if same and not turned and not moved and now < last.t + 1.0 then return end
+    last.x, last.y, last.z, last.pitch, last.yaw, last.t = c.X, c.Y, c.Z, r.Pitch, r.Yaw, now
+    last.pick = valid(pick) and pick:GetAddress() or nil
     if not healthySoldier(pick) then I.target = nil; return end
     local near = false
     pcall(function() near = p:GetDistanceTo(pick) <= 400 end)
@@ -114,7 +143,7 @@ function I.update(p, pc, now)
     if not okt then t = nil end
     local was = I.targetAddr
     if t and usable(p, t) then
-        I.target, I.targetAddr = t, t:GetAddress()
+        I.target, I.targetAddr, I.soldier = t, t:GetAddress(), pick
     else
         I.target, I.targetAddr = nil, nil
     end
@@ -134,6 +163,7 @@ function I.frame(p)
         if not (valid(pick) and pick:GetAddress() == I.targetAddr) then I.target = nil end
         return
     end
+    I.soldier = pick
     pcall(function() p.InteractingActor = t end)
     pcall(function() t:InInteractRadious(nil) end)
 end

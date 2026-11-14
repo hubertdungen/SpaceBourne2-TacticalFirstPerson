@@ -7,7 +7,7 @@ back to third person as soon as you draw a weapon. Tactical First Person keeps y
 person with a weapon in your hands: you see your own arms, body and gun, you aim by zooming in,
 and every shot goes where you look.
 
-Version 0.1.10 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
+Version 0.1.11 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
 realism set (see below).
 
 ## What it does
@@ -39,6 +39,8 @@ realism set (see below).
   and cutscenes use the game's camera as before; first person comes back afterwards.
 - **Leaning:** the game's lean keys work in first person, held or released while you move,
   sprint or draw.
+- **F prompt next to your squad:** a soldier standing beside you no longer takes the F prompt
+  from the loot or crate you are looking at.
 - **On by default.** No extra key.
 
 ## Requirements
@@ -53,7 +55,7 @@ Option A (recommended): the [SpaceBourne 2 Realism installer](https://www.nexusm
 
 Option B, manual:
 
-1. Download `TacticalFPS-0.1.10.zip` from the
+1. Download `TacticalFPS-0.1.11.zip` from the
    [releases](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases).
 2. Extract it into the game folder (`...\steamapps\common\SpaceBourne 2\`). It adds
    `SB2\Binaries\Win64\Mods\TacticalFPS\`; the `enabled.txt` inside turns it on.
@@ -79,7 +81,7 @@ Edit `Mods\TacticalFPS\scripts\config.lua`, then restart the game. Every line is
 - `NearClip` (5 cm): how close to your eyes things are still drawn; the game uses 10, which cuts
   your collar and the gun's stock. `0` leaves the game's value.
 - `ADS.Mode`: `"Sights"` (rifles, shotguns and pistols aim along their sights) or `"Zoom"` (every weapon zooms at your
-  eyes). `ADS.ZoomFOV`: zoom per weapon type. `ADS.BlendSeconds` (0.15).
+  eyes). `ADS.ZoomFOV`: zoom per weapon type. `ADS.BlendSeconds` (0.3, eased in and out).
 - `AimDot`: small centre dot while zoom-aiming (`true`).
 - `Crosshair`: `"Hidden"`, `"Small"` or `"Game"` in first person.
 
@@ -129,6 +131,11 @@ the view back without riding the gun; saves untouched.
 Soak-tested with the whole realism set: 18 minutes of fighting with up to 20 enemies, aiming and
 switching weapons every minute, at about 100 fps with no freeze and the mod's memory flat (under
 1.6 MB); saves untouched.
+
+Tested in game for 0.1.11: the aim-in view moves at most 6 cm and 1.8° of zoom per frame; with a
+squad soldier 70 cm to your right or left, standing or crouched, the loot box in front shows
+"F To Interact" (a soldier straight ahead or a hurt one stays the game's choice); crouching keeps
+first person; saves untouched.
 <!-- /nexus:skip -->
 
 Known limits:

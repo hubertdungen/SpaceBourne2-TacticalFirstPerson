@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.11 (2026-11-14)
+
+- **Smoother aim-in.** The view now moves from your eyes to the sight, and back, over 0.3 s,
+  easing in and out. Before, it was a straight 0.15 s move, which felt like a jump right after you
+  pressed aim. Recorded in game: the biggest step from one frame to the next is now 6 cm and
+  1.8° of zoom. `ADS.BlendSeconds` is now 0.3.
+- **Fixed: no F prompt with a squad soldier beside you.** The game looks for what F can use with
+  a box 2.56 m wide from your eyes, and takes the first thing in it. A soldier of your squad
+  standing next to you is inside that box, so the loot or crate right in front of you got no
+  prompt. F does nothing on a healthy soldier anyway. In first person, the mod now looks again
+  along your view when that happens, and gives the prompt to what you are looking at. A soldier
+  straight in front of you, or a hurt or dead one, is still the game's choice. Tested in game: a
+  soldier 70 cm to your right or left, standing or crouched, and the loot box in front shows
+  "F To Interact".
+
 ## 0.1.10 (2026-11-12)
 
 - **Fixed: lean flipping or sticking in first person.** The game counts lean key presses and
