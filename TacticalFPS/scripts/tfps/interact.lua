@@ -14,14 +14,16 @@
   the game's own reach, that becomes the F target and gets its prompt, every frame, as the game
   does for its own pick. A soldier right in front of you stays the game's pick.
   Traced at most 5 times a second, and only then: each UE4SS call with an out param keeps a
-  registry entry (0.1.9).
+  registry entry (0.1.9). Loot drops are Master_Drop_Loot_C < Master_Loot_On_Foot_C <
+  Master_InteractiveFoot_C (InteractionLenght 0, so the game's reach is 530 cm).
 ]]
 
+local U = require("tfps.util")
 local I = { target = nil }
 
-local SQUAD, FOOT, CHARACTER = "Q1_GroundSquad_C", "Master_Interactive_Foot_C", "Character"
+local SQUAD, FOOT, CHARACTER = "Q1_GroundSquad_C", "Master_InteractiveFoot_C", "Character"
 local KSL = nil
-local HIT, IGN = {}, {}
+local IGN = {}
 local HALF = { X = 2, Y = 12, Z = 32 }
 local RED, GREEN = { R = 1, G = 0, B = 0, A = 1 }, { R = 0, G = 1, B = 0, A = 1 }
 local isCache = {}
@@ -57,7 +59,7 @@ local function healthySoldier(a)
     return ok and r
 end
 
--- what the game would do with this actor as its pick: a Master_Interactive_Foot within its own
+-- what the game would do with this actor as its pick: a Master_InteractiveFoot within its own
 -- reach (InteractionLenght, 530..1500 cm), anything else that is not a character within 530 cm
 local function usable(p, t)
     if not valid(t) or isA(t, CHARACTER) then return false end
@@ -83,12 +85,14 @@ local function trace(p, pc)
     local cy, sy = math.cos(math.rad(r.Yaw)), math.sin(math.rad(r.Yaw))
     local e = { X = s.X + cp * cy * 3400, Y = s.Y + cp * sy * 3400, Z = s.Z + sp * 3400 }
     IGN[1] = p
+    -- a fresh hit table each time: a reused one came back with no new hit in game (2026-11-14)
+    local hit = {}
     local okc, res = pcall(function()
-        return KSL:BoxTraceSingle(p, s, e, HALF, pc:GetControlRotation(), 4, false, IGN, 0, HIT, true, RED, GREEN, 0.0)
+        return KSL:BoxTraceSingle(p, s, e, HALF, pc:GetControlRotation(), 4, false, IGN, 0, hit, true, RED, GREEN, 0.0)
     end)
     if not (okc and res) then return nil end
     local a = nil
-    pcall(function() a = HIT.Actor; if a and a.Get then a = a:Get() end end)
+    pcall(function() a = hit.Actor; if a and a.Get then a = a:Get() end end)
     return valid(a) and a or nil
 end
 
@@ -108,10 +112,14 @@ function I.update(p, pc, now)
     nextTrace = now + 0.2
     local okt, t = pcall(trace, p, pc)
     if not okt then t = nil end
+    local was = I.targetAddr
     if t and usable(p, t) then
         I.target, I.targetAddr = t, t:GetAddress()
     else
-        I.target = nil
+        I.target, I.targetAddr = nil, nil
+    end
+    if I.targetAddr ~= was and U.Verbose then
+        U.log("F target past a squad soldier: " .. (I.target and I.target:GetClass():GetFName():ToString() or "none"))
     end
 end
 
