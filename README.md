@@ -134,7 +134,8 @@ switching weapons every minute, at about 100 fps with no freeze and the mod's me
 
 Tested in game for 0.1.11: the aim-in view moves at most 6 cm and 1.8° of zoom per frame; with a
 squad soldier 70 cm to your right or left, standing or crouched, the loot box in front shows
-"F To Interact" (a soldier straight ahead or a hurt one stays the game's choice); crouching keeps
+"F To Interact" (a soldier straight ahead or a hurt one stays the game's choice), also while walking and turning around it
+for 2.5 minutes with the mod's memory flat; crouching keeps
 first person; saves untouched.
 <!-- /nexus:skip -->
 
