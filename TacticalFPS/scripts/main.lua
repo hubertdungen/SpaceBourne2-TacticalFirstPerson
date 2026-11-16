@@ -9,7 +9,7 @@
     tfps/util.lua      helpers (from HTR)
 ]]
 
-local VERSION = "0.1.11"
+local VERSION = "0.1.12"
 
 local U = require("tfps.util")
 
@@ -33,6 +33,8 @@ default(cfg.ADS, "Mode", "Sights"); default(cfg.ADS, "BlendSeconds", 0.15)
 default(cfg.ADS, "ZoomFOV", { Pistol = 75, SMG = 70, Rifle = 65, Shotgun = 75 })
 cfg.FOV = math.max(60, math.min(120, tonumber(cfg.FOV) or 90))
 cfg.NearClip = math.max(0, math.min(10, tonumber(cfg.NearClip) or 0))
+default(cfg, "CrouchNearClip", 1.5)
+cfg.CrouchNearClip = math.max(0, math.min(10, tonumber(cfg.CrouchNearClip) or 0))
 
 U.Verbose = cfg.Debug == true
 TFPS = { version = VERSION, cfg = cfg }

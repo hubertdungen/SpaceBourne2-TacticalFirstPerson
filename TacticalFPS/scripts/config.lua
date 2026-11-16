@@ -29,6 +29,7 @@ return {
 
     FOV = 90,           -- field of view in first person (game default 90)
     NearClip = 5,       -- cm; how close to your eyes things are still drawn (game default 10). 0 = leave it
+    CrouchNearClip = 1.5, -- cm; the same while crouched (the weapon comes closer to the eyes). 0 = same as NearClip
 
     -- Aiming in first person.
     ADS = {

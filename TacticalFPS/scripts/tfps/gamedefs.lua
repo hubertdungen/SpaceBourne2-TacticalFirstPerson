@@ -70,6 +70,7 @@ G.P = {
     FPWalk = "IsFirstPersonCameraWalkOn",        -- the game's own forced first-person walk areas
     Loading = "GameLoading?", Prisoner = "PrisonerState?", WeaponOut = "CurrentStateWeapon",
     DesiredGait = "DesiredGait",                 -- 0 walk, 1 run, 2 sprint (ALS_Gait)
+    Stance = "Stance",                           -- 0 standing, 1 crouching (ALS_Stance)
     AimHeld = "RMBDown",                         -- aim held (mouse or gamepad); a weapon switch clears it
     Mesh = "Mesh",
     -- Q1_Character

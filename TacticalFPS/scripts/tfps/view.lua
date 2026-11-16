@@ -38,7 +38,7 @@ local V = {
     keyAt = nil,          -- os.clock() of the last game camera key press
     persist = nil,        -- main.lua: saves wantFP to state.txt
     lastBlock = nil,
-    nearOn = false,       -- our near clip plane is set
+    nearVal = 0,          -- near clip plane we set (cm), 0 = the game's
     poseOurs = false,     -- we put the player in ALS's aiming pose (weapon up)
     deadUntil = 0,        -- os.clock(): no engine calls until then (the player died)
     reloadAt = nil,       -- os.clock() of the last reload (watch the view for a few seconds)
@@ -72,10 +72,23 @@ end
 -- Near clip plane: the game draws nothing closer than 10 cm to the camera, which cuts the
 -- collar and the weapon's stock in first person. Lowered only while first person is on.
 -- Returns true when it changed the plane (a console command: the engine waits for the renderer).
+local function nearWanted(p)
+    if not V.isFP then return 0 end
+    local n = cfg().NearClip
+    -- Crouched, the head and the weapon come closer together (a pistol 13 cm closer to the eyes,
+    -- measured 2026-11-16), so a rifle's stock gets cut by the plane: a lower plane while crouched.
+    local c = cfg().CrouchNearClip
+    if n > 0 and c > 0 and c < n and U.get(p, P.Stance, 0) == 1 then n = c end
+    return n
+end
+
 local function syncNearClip(p)
-    local want = V.isFP and cfg().NearClip > 0
-    if want == V.nearOn then return false end
-    if U.console("r.SetNearClipPlane " .. (want and cfg().NearClip or 10), p) then V.nearOn = want end
+    local want = nearWanted(p)
+    if want == V.nearVal then return false end
+    if U.console("r.SetNearClipPlane " .. (want > 0 and want or 10), p) then
+        V.nearVal = want
+        if U.Verbose then U.log("near clip plane " .. (want > 0 and want or 10) .. " cm") end
+    end
     return true
 end
 
@@ -280,7 +293,7 @@ function V.onTick(self, A)
     local now = os.clock()
     if now < V.deadUntil then return end
     if V.reloadAt and now >= V.guardNext then guardReload(self, now) end
-    if INT.target and V.isFP then INT.frame(INT.p) end -- F target past a squad soldier (interact.lua)
+    if INT.target and V.isFP then INT.frame(INT.p) end -- F target through blockers (interact.lua)
     if now < ((V.dirty or A.wantsFrames()) and V.nextFast or V.nextPoll) then return end
     V.nextFast = now + 0.008             -- while something is pending: about once per frame
     V.nextPoll = now + cfg().PollSeconds
@@ -317,7 +330,7 @@ function V.update(p, now, A)
     if timed("near clip", syncNearClip, p) then V.dirty = true; return end
     timed("pose", weaponPose, p, A)
     if LEAN.held() then LEAN.fix(p) end -- a pose change while a lean key is held keeps the lean right
-    if V.isFP then timed("interact", INT.update, p, U.playerController(p), now) end
+    if V.isFP then timed("interact", INT.update, p, U.playerController(p), now) else INT.reset() end
 end
 
 step = function(p, now, A)
