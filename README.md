@@ -7,7 +7,7 @@ back to third person as soon as you draw a weapon. Tactical First Person keeps y
 person with a weapon in your hands: you see your own arms, body and gun, you aim by zooming in,
 and every shot goes where you look.
 
-Version 0.1.11 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
+Version 0.1.12 · [Nexus Mods page](https://www.nexusmods.com/spacebourne2/mods/15) · UE4SS Lua mod · works alone or with the rest of the
 realism set (see below).
 
 ## What it does
@@ -39,8 +39,8 @@ realism set (see below).
   and cutscenes use the game's camera as before; first person comes back afterwards.
 - **Leaning:** the game's lean keys work in first person, held or released while you move,
   sprint or draw.
-- **F prompt next to your squad:** a soldier standing beside you no longer takes the F prompt
-  from the loot or crate you are looking at.
+- **F prompt for what you look at:** a squad soldier or anything else standing beside you no longer
+  takes the F prompt and the glow from the loot or crate you are looking at.
 - **On by default.** No extra key.
 
 ## Requirements
@@ -55,7 +55,7 @@ Option A (recommended): the [SpaceBourne 2 Realism installer](https://www.nexusm
 
 Option B, manual:
 
-1. Download `TacticalFPS-0.1.11.zip` from the
+1. Download `TacticalFPS-0.1.12.zip` from the
    [releases](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/releases).
 2. Extract it into the game folder (`...\steamapps\common\SpaceBourne 2\`). It adds
    `SB2\Binaries\Win64\Mods\TacticalFPS\`; the `enabled.txt` inside turns it on.
@@ -80,6 +80,8 @@ Edit `Mods\TacticalFPS\scripts\config.lua`, then restart the game. Every line is
 - `FOV` (90): field of view in first person.
 - `NearClip` (5 cm): how close to your eyes things are still drawn; the game uses 10, which cuts
   your collar and the gun's stock. `0` leaves the game's value.
+- `CrouchNearClip` (1.5 cm): the same while crouched, when the weapon comes closer to your eyes. `0` uses
+  `NearClip`.
 - `ADS.Mode`: `"Sights"` (rifles, shotguns and pistols aim along their sights) or `"Zoom"` (every weapon zooms at your
   eyes). `ADS.ZoomFOV`: zoom per weapon type. `ADS.BlendSeconds` (0.3, eased in and out).
 - `AimDot`: small centre dot while zoom-aiming (`true`).
@@ -131,6 +133,11 @@ the view back without riding the gun; saves untouched.
 Soak-tested with the whole realism set: 18 minutes of fighting with up to 20 enemies, aiming and
 switching weapons every minute, at about 100 fps with no freeze and the mod's memory flat (under
 1.6 MB); saves untouched.
+
+Tested in game for 0.1.12: with a squad soldier 70 cm to your right, standing or crouched, the game alone
+keeps the F on the soldier with no glow on the crate in front, and with the look-through the crate gets
+the prompt and the glow; a soldier straight ahead keeps the F; the mod's memory stays flat over 130 s of
+walking and turning. Not seen in game: the near clip change (no screenshot possible).
 
 Tested in game for 0.1.11: the aim-in view moves at most 6 cm and 1.8° of zoom per frame; with a
 squad soldier 70 cm to your right or left, standing or crouched, the loot box in front shows

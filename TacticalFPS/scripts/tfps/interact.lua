@@ -20,9 +20,11 @@
   right in front of the target still blocks it, and a character (soldier, enemy) in front stays
   the game's choice.
 
-  Traced when the view moved (at most 5 times a second) and once a second otherwise: each UE4SS
-  call with an out param keeps a registry entry (0.1.9), so the one hit table is emptied and reused
-  (a fresh one each time leaked 1.6 MB a minute, 2026-11-14). Loot drops are Master_Drop_Loot_C <
+  Traced when the view moved (turned 3 degrees or moved 10 cm; at most 3 times a second) and every
+  2 seconds otherwise. Each UE4SS call with an out param keeps one registry entry for good (about
+  one per trace, measured 2026-11-16: 62 to 320 entries in 330 s of testing, a few bytes each), so
+  the one hit table is emptied and reused: the heap stays flat (a fresh table each time leaked
+  1.6 MB a minute, 2026-11-14). Loot drops are Master_Drop_Loot_C <
   Master_Loot_On_Foot_C < Master_InteractiveFoot_C (InteractionLenght 0, so the game's reach is
   530 cm); crates are Master_Loot_Continer_C < Master_InteractiveFoot_C.
 ]]
@@ -124,11 +126,11 @@ function I.update(p, pc, now)
     local c, r = nil, nil
     pcall(function() local cm = pc.PlayerCameraManager; c, r = cm:GetCameraLocation(), cm:GetCameraRotation() end)
     if not c then return end
-    local turned = math.abs(r.Pitch - last.pitch) > 2 or math.abs(((r.Yaw - last.yaw + 180) % 360) - 180) > 2
-    local moved = math.abs(c.X - last.x) + math.abs(c.Y - last.y) + math.abs(c.Z - last.z) > 5
-    if not turned and not moved and now < last.t + 1.0 then return end
+    local turned = math.abs(r.Pitch - last.pitch) > 3 or math.abs(((r.Yaw - last.yaw + 180) % 360) - 180) > 3
+    local moved = math.abs(c.X - last.x) + math.abs(c.Y - last.y) + math.abs(c.Z - last.z) > 10
+    if not turned and not moved and now < last.t + 2.0 then return end
     last.x, last.y, last.z, last.pitch, last.yaw, last.t = c.X, c.Y, c.Z, r.Pitch, r.Yaw, now
-    nextTrace = now + 0.2
+    nextTrace = now + 0.3
     local okt, t = pcall(trace, p, pc)
     if not okt then t = nil end
     local was = I.targetAddr

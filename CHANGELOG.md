@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.12 (2026-11-16)
+
+- **Fixed: no F prompt and no glow on a crate or loot in front of you when something else stands
+  next to you.** The game looks for what F can use with a box 2.56 m wide that starts at your
+  eyes, and takes the first thing it touches. In first person anything beside you inside that box,
+  not only a squad soldier, comes first and the crate in front gets nothing. The mod now looks
+  again along your view with a narrow box and gives the prompt, the glow and the F key to what you
+  are looking at. A soldier or other character straight in front of you stays the game's choice.
+  Tested in game: with a soldier 70 cm beside you the game's own pick was the soldier and no glow
+  (0.1.11 behaviour switched off for the test); with the new look the crate got the glow and the
+  prompt, standing and crouched.
+- **Crouched, the near clip plane is now lower (`CrouchNearClip`, 1.5 cm).** Crouching brings the
+  weapon closer to your eyes (a rifle's origin 10 cm in front of the camera), which cut its stock
+  and showed the inside of the gun at the bottom right. Standing stays at `NearClip` (5 cm).
+
 ## 0.1.11 (2026-11-14)
 
 - **Smoother aim-in.** The view now moves from your eyes to the sight, and back, over 0.3 s,
