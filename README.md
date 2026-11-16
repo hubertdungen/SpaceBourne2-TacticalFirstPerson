@@ -182,3 +182,6 @@ To install them all at once, use the installer:
 ## License
 
 MIT. See [LICENSE](https://github.com/hubertdungen/SpaceBourne2-TacticalFirstPerson/blob/main/LICENSE).
+
+
+<p align="center"><a href="https://dlforge.dungenlabs.com"><img src="docs/branding/dlforge-logo.svg" alt="DL Forge" width="120"></a><br><a href="https://dlforge.dungenlabs.com">DL Forge</a></p>
