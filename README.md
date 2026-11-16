@@ -137,7 +137,9 @@ switching weapons every minute, at about 100 fps with no freeze and the mod's me
 Tested in game for 0.1.12: with a squad soldier 70 cm to your right, standing or crouched, the game alone
 keeps the F on the soldier with no glow on the crate in front, and with the look-through the crate gets
 the prompt and the glow; a soldier straight ahead keeps the F; the mod's memory stays flat over 130 s of
-walking and turning. Not seen in game: the near clip change (no screenshot possible).
+walking and turning. Crouched, with the T. Sansum Assault Rifle (and the M. Cogibox Pulse Charger), screenshots of
+the game window at a 5 cm and a 1.5 cm near plane: at 5 cm the rifle's rear is cut while crouch-walking and the
+world shows through it, at 1.5 cm the body is solid; no neck or collar artefacts looking down 60 or 80 degrees.
 
 Tested in game for 0.1.11: the aim-in view moves at most 6 cm and 1.8° of zoom per frame; with a
 squad soldier 70 cm to your right or left, standing or crouched, the loot box in front shows

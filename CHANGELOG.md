@@ -14,6 +14,9 @@
 - **Crouched, the near clip plane is now lower (`CrouchNearClip`, 1.5 cm).** Crouching brings the
   weapon closer to your eyes (a rifle's origin 10 cm in front of the camera), which cut its stock
   and showed the inside of the gun at the bottom right. Standing stays at `NearClip` (5 cm).
+  Checked with screenshots of the game window: crouch-walking with the T. Sansum Assault Rifle at
+  5 cm the rifle's rear is cut and the world shows through; at 1.5 cm it is solid. Nothing odd
+  with the Pulse Charger or looking straight down.
 
 ## 0.1.11 (2026-11-14)
 
